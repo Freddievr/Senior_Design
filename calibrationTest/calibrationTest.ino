@@ -1,46 +1,39 @@
 int x;
-
+int motorDistance = 8000;
+int motorSpeed = 300;
 const int buttonPin1 = 6;  // the number of the pushbutton pin
 const int buttonPin2 = 5;
-
-int motorSpeed = 100;
-int motorDistance = 4;
-// variables will change:
-int buttonState = 0;  // variable for reading the pushbutton status
-
-
-
+int buttonState;
 
 void setup() {
   pinMode(9, OUTPUT);  // set Pin9 as PUL
   pinMode(8, OUTPUT);  // set Pin8 as DIR
-  
-  // initialize the pushbutton pin as an input:
+    // initialize the pushbutton pin as an input:
   pinMode(buttonPin1, INPUT);
   pinMode(buttonPin2, INPUT);
 }
 void loop() {
-
-if(buttonPress1()){
-  digitalWrite(8, LOW);  // set high level direction
-  for (x = 0; x < motorDistance; x++) {
-    digitalWrite(9, HIGH);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(9, LOW);
-    delayMicroseconds(motorSpeed);
+  while(buttonPress1()){
+    digitalWrite(8, HIGH);     // set high level direction
+    for (x = 0; x < motorDistance; x++)  // repeat 400 times a revolution when setting 400 on driver
+    {
+      digitalWrite(9, HIGH);   // Output high
+      delayMicroseconds(motorSpeed);  // set rotate speed
+      digitalWrite(9, LOW);    // Output low
+      delayMicroseconds(motorSpeed);  // set rotate speed
+    }
   }
-}
 
-if(buttonPress2()){
-  digitalWrite(8, HIGH);     // set high level direction
-  for (x = 0; x < motorDistance; x++) {
-    digitalWrite(9, HIGH);   // Output high
-    delayMicroseconds(motorSpeed);  // set rotate speed
-    digitalWrite(9, LOW);    // Output low
-    delayMicroseconds(motorSpeed);  // set rotate speed
+  while(buttonPress2()){
+    digitalWrite(8, LOW);     // set high level direction
+    for (x = 0; x < motorDistance; x++)  // repeat 400 times a revolution when setting 400 on driver
+    {
+      digitalWrite(9, HIGH);   // Output high
+      delayMicroseconds(motorSpeed);  // set rotate speed
+      digitalWrite(9, LOW);    // Output low
+      delayMicroseconds(motorSpeed);  // set rotate speed
+    }
   }
-}
-
 }
 
 bool buttonPress1() {
