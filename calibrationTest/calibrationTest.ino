@@ -19,34 +19,40 @@ void setup() {
   pinMode(buttonPin2, INPUT);
 }
 void loop() {
-  while (digitalRead(buttonPin1)) {
-    digitalWrite(dirPinM1, HIGH);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-  }
-// Slowly move away from switch until switch is open
-  while (!digitalRead(buttonPin1)) {
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-  }
-  steps[0] = 0;
-  delay(10);
-// Moves in opposite direction to find max travel distance
-  while (digitalRead(buttonPin2)) {
+  
+//   while (!digitalRead(buttonPin1)) {
+//     digitalWrite(dirPinM1, HIGH);
+//     digitalWrite(stepPinM1, HIGH);
+//     delayMicroseconds(motorSpeed);
+//     digitalWrite(stepPinM1, LOW);
+//     delayMicroseconds(motorSpeed);
+//   }
+// // Slowly move away from switch until switch is open
+//   while (digitalRead(buttonPin1)) {
     digitalWrite(dirPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-  }
-// Slowly move away from switch until switch is open
-  while (!digitalRead(buttonPin2)) {
+//     digitalWrite(stepPinM1, HIGH);
+//     delayMicroseconds(motorSpeed);
+//     digitalWrite(stepPinM1, LOW);
+//     delayMicroseconds(motorSpeed);
+//   }
+//   steps[0] = 0;
+//   delay(10);
+// // Moves in opposite direction to find max travel distance
+//   while (digitalRead(buttonPin2)) {
+//     digitalWrite(dirPinM1, LOW);
+//     delayMicroseconds(motorSpeed);
+//     digitalWrite(stepPinM1, LOW);
+//     delayMicroseconds(motorSpeed);
+//   }
+// // Slowly move away from switch until switch is open
+//   while (!digitalRead(buttonPin2)) {
+//     digitalWrite(stepPinM1, HIGH);
+//     delayMicroseconds(motorSpeed);
+//     digitalWrite(stepPinM1, LOW);
+//     delayMicroseconds(motorSpeed);
+//   }
+  while(1){
     digitalWrite(stepPinM1, HIGH);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
   }
 }
 
