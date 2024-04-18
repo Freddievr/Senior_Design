@@ -1,6 +1,9 @@
 import tkinter
 import tkinter.messagebox
 import customtkinter
+import AppOpener
+import os
+from tkinter.filedialog import askopenfilename
 
 customtkinter.set_appearance_mode(
     "Light")  # Modes: "System" (standard), "Dark", "Light"
@@ -251,6 +254,19 @@ class App(customtkinter.CTk):
 
   def combobox_callback(choice):
     print("Selected Method:", choice)
+
+
+# Create Open App Popup 
+  root = Tk() 
+  root.geometry('250x400') 
+
+  def open_file(): 
+    file = askopenfilename()
+    os.system('"%s"' % file)
+
+  self.button(root, text ='Open', 
+       command = open_file).pack(side = TOP, 
+                                 pady = 10)
 
 if __name__ == "__main__":
   app = App()
