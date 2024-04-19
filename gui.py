@@ -1,9 +1,8 @@
 import tkinter
 import tkinter.messagebox
 import customtkinter
-import AppOpener
 import os
-from tkinter.filedialog import askopenfilename
+from tkinter import filedialog
 
 customtkinter.set_appearance_mode(
     "Light")  # Modes: "System" (standard), "Dark", "Light"
@@ -18,7 +17,7 @@ class App(customtkinter.CTk):
 
     # configure window
     self.title("UNCC_ECE_PROBE")
-    self.geometry(f"{1100}x{580}")
+    self.geometry(f"{1250}x{600}")
 
     # configure grid layout (4x4)
     self.grid_columnconfigure(1, weight=1)
@@ -36,74 +35,66 @@ class App(customtkinter.CTk):
                                              font=customtkinter.CTkFont(
                                                  size=20, weight="bold"))
     self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
-    self.sidebar_button_1 = customtkinter.CTkButton(
-        self.sidebar_frame, command=self.sidebar_button_event, text="Method 1")
-    self.sidebar_button_1.grid(row=1, column=0, padx=20, pady=10)
+   # self.gap_avg = customtkinter.CTkLabel(master=self, height=20, width=20, text= "gap_average")
+   # self.gap_avg.grid(row=2, column=1, padx=2, pady=(20, 10))
 
-    self.gap_avg = customtkinter.CTkLabel(master=self, height=20, width=20, text= "gap_average")
+  # Open Program
+    self.Open_program_button = customtkinter.CTkButton(
+      self.sidebar_frame, text="Choose Program to Open", command = self.open_program)
+    self.Open_program_button.grid(row=1, column = 0, padx=20, pady=10)
 
-    self.sidebar_button_2 = customtkinter.CTkButton(
-        self.sidebar_frame, command=self.sidebar_button_event, text="Method 2")
-    self.sidebar_button_2.grid(row=2, column=0, padx=20, pady=10)
-
-
-
-    self.appearance_mode_label = customtkinter.CTkLabel(
-        self.sidebar_frame, text="Appearance Mode:", anchor="w")
+    self.Open_IV_program_button = customtkinter.CTkButton(
+      self.sidebar_frame, text="Open IV Program", command = self.open_IV_program)
+    self.Open_IV_program_button.grid(row=2, column=0, padx=20, pady=10)
     
-    self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(10, 0))
+    self.Open_arduino_program_button = customtkinter.CTkButton(
+      self.sidebar_frame, text="Open Arduino Program", command = self.open_arduino_program)
+    self.Open_arduino_program_button.grid(row=3, column=0, padx=20, pady=10)
+
+    self.label_open_program = customtkinter.CTkLabel(
+      self.sidebar_frame, text="Open Program:", anchor="w")
+    self.label_open_program.grid(row=5, column=0, padx=20, pady=(10, 0))
+    
+    self.label_open_iv = customtkinter.CTkLabel(
+      self.sidebar_frame, text="IV Path:", anchor="w")
+    self.label_open_iv.grid(row=6, column=0, padx=20, pady=(10, 0))
+    
+    self.label_open_arduino = customtkinter.CTkLabel(
+      self.sidebar_frame, text="Arduino Path:", anchor="w")
+    self.label_open_arduino.grid(row=7, column=0, padx=20, pady=(10, 0))
+
     self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(
         self.sidebar_frame,
         values=["Light", "Dark", "System"],
         command=self.change_appearance_mode_event)
-    self.appearance_mode_optionemenu.grid(row=6,
+    self.appearance_mode_optionemenu.grid(row=8,
                                           column=0,
                                           padx=20,
                                           pady=(10, 10))
     self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                 text="UI Scaling:",
                                                 anchor="w")
-    self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
+    self.scaling_label.grid(row=9, column=0, padx=20, pady=(10, 0))
     self.scaling_optionemenu = customtkinter.CTkOptionMenu(
         self.sidebar_frame,
         values=["80%", "90%", "100%", "110%", "120%"],
         command=self.change_scaling_event)
-    self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
-
-    # create main entry and button
-    self.entry = customtkinter.CTkEntry(self, placeholder_text="CTkEntry")
-    self.entry.grid(row=3,
-                    column=1,
-                    columnspan=2,
-                    padx=(20, 0),
-                    pady=(20, 20),
-                    sticky="nsew")
-
-    self.main_button_1 = customtkinter.CTkButton(master=self,
-                                                 fg_color="transparent",
-                                                 border_width=2,
-                                                 text_color=("gray10",
-                                                             "#DCE4EE"))
-    self.main_button_1.grid(row=3,
-                            column=3,
-                            padx=(20, 20),
-                            pady=(20, 20),
-                            sticky="nsew")
+    self.scaling_optionemenu.grid(row=10, column=0, padx=20, pady=(10, 20))
 
     # create textbox
     self.textbox = customtkinter.CTkTextbox(self, width=250)
     self.textbox.grid(row=0,
                       column=1,
-                      padx=(20, 0),
-                      pady=(20, 0),
+                      padx=(20, 20),
+                      pady=(20, 20),
                       sticky="nsew")
 
-    # create tabview
-    self.tabview = customtkinter.CTkTabview(self, width=250)
+    # create tabview Method Selection
+    self.tabview = customtkinter.CTkTabview(self, width=150)
     self.tabview.grid(row=0,
-                      column=2,
-                      padx=(20, 0),
-                      pady=(20, 0),
+                      column=3,
+                      padx=(30, 30),
+                      pady=(10, 10),
                       sticky="nsew")
     self.tabview.add("Method 1")
     self.tabview.add("Method 2")
@@ -138,19 +129,18 @@ class App(customtkinter.CTk):
     # create radiobutton frame
     self.radiobutton_frame = customtkinter.CTkFrame(self)
     self.radiobutton_frame.grid(row=0,
-                                column=3,
-                                padx=(20, 20),
-                                pady=(20, 0),
-                                sticky="nsew")
+                                column=2,
+                                padx=(20, 10),
+                                pady=(20, 10),
+                                sticky="n")
     self.radio_var = tkinter.IntVar(value=0)
     self.label_radio_group = customtkinter.CTkLabel(
-        master=self.radiobutton_frame, text="Testing Method:")
+        master=self.radiobutton_frame, text="Testing Method:", width = 100)
     self.label_radio_group.grid(row=0,
                                 column=2,
-                                columnspan=1,
-                                padx=10,
-                                pady=10,
-                                sticky="")
+                                padx=20,
+                                pady=0,
+                                sticky="n")
     self.radio_button_1 = customtkinter.CTkRadioButton(
         master=self.radiobutton_frame, variable=self.radio_var, value=0, text="Method 1")
     self.radio_button_1.grid(row=1, column=2, pady=10, padx=20, sticky="n")
@@ -169,74 +159,87 @@ class App(customtkinter.CTk):
     self.slider_progressbar_frame.grid_columnconfigure(0, weight=1)
     self.slider_progressbar_frame.grid_rowconfigure(4, weight=1)
     self.progressbar_1 = customtkinter.CTkProgressBar(
-        self.slider_progressbar_frame)
-    self.progressbar_1.grid(row=1,
+        self.slider_progressbar_frame, progress_color= "green", width = 250)
+    self.progressbar_1.grid(row=2,
                             column=0,
                             padx=(20, 10),
                             pady=(10, 10),
-                            sticky="ew")
+                            sticky="w")
 
     # create Combobox (Method 1/2)
-    self.method_frame = customtkinter.CTkFrame(self)
-    self.method_frame.grid(row=1,
-                                    column=3,
-                                    padx=(20, 10),
-                                    pady=(20, 0),
-                                    sticky="nsew")
-    self.method_var = tkinter.IntVar(value=0)
-    self.combobox = customtkinter.CTkComboBox(master=self.method_frame, values=["Method 1", "Method 2"],
-                                     command=self.combobox_callback, variable=self.method_var)
-    self.method_var.set("Method 1")
+    #self.method_var = tkinter.IntVar(value=0)
+    #self.combobox = customtkinter.CTkComboBox(master=self.method_frame, values=["Method 1", "Method 2"],
+    #                                 command=self.combobox_callback, variable=self.method_var)
+    #self.method_var.set("Method 1")
 
   # Start Button
     self.button_frame = customtkinter.CTkFrame(self)
-    self.button_frame.grid(row=1,
-                              column=2,
-                              padx=(20, 10),
-                              pady=(20, 0),
-                              sticky="nsew")
-    self.radio_var = tkinter.IntVar(value=0)
-    self.label_button_group = customtkinter.CTkLabel(
-      master=self.button_frame, text="Testing Method:")
-    self.label_button_group.grid(row=1,
-                              column=2,
-                              columnspan=1,
-                              padx=10,
-                              pady=10,
-                              sticky="")
+    self.button_frame.grid(row=2,
+                              column=3,
+                              padx=(20, 20),
+                              pady=(10, 10),
+                              sticky="n")
+
     self.start_button = customtkinter.CTkButton(
-      master=self.button_frame, command=self.button_start, fg_color="green", text="Start")
+      master=self.button_frame, command=self.button_start, fg_color="green", text="Start", width = 150)
     self.start_button.grid(row=1, column=2, pady=20, padx=20, sticky="n")
     self.resume_button = customtkinter.CTkButton(
-      master=self.button_frame, command=self.button_resume, fg_color="Orange", text="Resume")
+      master=self.button_frame, command=self.button_resume, fg_color="Orange", text="Pause", width = 150)
     self.resume_button.grid(row=2, column=2, pady=20, padx=20, sticky="n")
     self.stop_button = customtkinter.CTkButton(
-      master=self.button_frame, command=self.button_stop, fg_color="red", text="Stop")
+      master=self.button_frame, command=self.button_stop, fg_color="red", text="Stop", width = 150)
     self.stop_button.grid(row=3, column=2, pady=20, padx=20, sticky="n")
 
   # set default values
+    self.stop_button.configure(state="disabled")
     self.resume_button.configure(state="disabled")
     self.appearance_mode_optionemenu.set("Light")
     self.scaling_optionemenu.set("100%")
-    self.progressbar_1.configure(mode="determinate",determinate_speed= 0.2)
-    self.progressbar_1.start()
+    self.progressbar_1.configure(mode="determinate",determinate_speed= 0.1)
     self.textbox.insert(
       0.0, "Demo for UNCC_ECE_Probe.\n\n " +
-      "GRAPH PENDING \n \n "
+      "Blank Window \n \n "
       * 4)
+# FUNCTIONS Define
 
-  def button_stop():    
-        self.resume_button.configure(state="normal")
-        print("STOPPED")
-  def button_start():
-        print("button clicked")
-  def button_resume():
-       print("button clicked")
+  def button_stop(self):    
+    self.progressbar_1.stop()
+    self.progressbar_1.set(0.0)
+    print("STOPPED")
+    self.resume_button.configure(state="disabled")
+    self.start_button.configure(state="enabled", text = "Start")
+    self.stop_button.configure(state="disabled")
 
-    #self.radio_button_resume = customtkinter.CTkButton(
-    #master=self.radiobutton_frame, command=self.button_start, fg_color="yellow", text="Resume")
-    #self.radio_button_resume.grid(row=1, column=2, pady=20, padx=20, sticky="n")
 
+  def button_start(self):
+    print("button clicked")
+    self.progressbar_1.start()
+    self.resume_button.configure(state="enabled")
+    self.start_button.configure(state="disabled",text_color_disabled = "green", text = "Start")
+    self.stop_button.configure(state="enabled")
+
+  def button_resume(self):
+    print("button clicked")
+    self.progressbar_1.stop()
+    self.resume_button.configure(state="disabled")
+    self.start_button.configure(state="enabled", text = "Resume" )
+    self.stop_button.configure(state="enabled")
+    
+  def open_program(self):
+    file_path = filedialog.askopenfilename()
+    self.label_open_program.configure(text=file_path)
+    os.system('"%s' % file_path)
+
+  def open_IV_program(self):
+    IV_path = 'c:\Contact-Resistance.xls'
+    self.label_open_iv.configure(text=IV_path)
+    os.system('"%s' % IV_path)
+
+  def open_arduino_program(self):
+    arduino_path = filedialog.askopenfilename()
+    self.label_open_arduino.configure(text=arduino_path)
+    os.system('"%s' % arduino_path)
+# given
   def open_input_dialog_event(self):
     dialog = customtkinter.CTkInputDialog(text="Type in Value:",
                                           title="Input Variables")
@@ -254,19 +257,6 @@ class App(customtkinter.CTk):
 
   def combobox_callback(choice):
     print("Selected Method:", choice)
-
-
-# Create Open App Popup 
-  root = Tk() 
-  root.geometry('250x400') 
-
-  def open_file(): 
-    file = askopenfilename()
-    os.system('"%s"' % file)
-
-  self.button(root, text ='Open', 
-       command = open_file).pack(side = TOP, 
-                                 pady = 10)
 
 if __name__ == "__main__":
   app = App()
