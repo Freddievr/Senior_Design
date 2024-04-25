@@ -3,6 +3,7 @@ import tkinter.messagebox
 import customtkinter
 import os
 from tkinter import filedialog
+from PIL import Image
 
 customtkinter.set_appearance_mode(
     "Light")  # Modes: "System" (standard), "Dark", "Light"
@@ -17,7 +18,7 @@ class App(customtkinter.CTk):
 
     # configure window
     self.title("UNCC_ECE_PROBE")
-    self.geometry(f"{1250}x{600}")
+    self.geometry(f"{1450}x{750}")
 
     # configure grid layout (4x4)
     self.grid_columnconfigure(1, weight=1)
@@ -81,13 +82,21 @@ class App(customtkinter.CTk):
         command=self.change_scaling_event)
     self.scaling_optionemenu.grid(row=10, column=0, padx=20, pady=(10, 20))
 
+
+    # Create Picture
+    self.image1 = customtkinter.CTkImage(light_image=Image.open('Images/1.png'),
+    dark_image=Image.open('Images/1.png'),
+    size=(600,300))
+    self.image1_label = customtkinter.CTkLabel(self, text = "", image=self.image1)
+    self.image1_label.grid(column=1,row=0)
+  
     # create textbox
-    self.textbox = customtkinter.CTkTextbox(self, width=250)
-    self.textbox.grid(row=0,
-                      column=1,
-                      padx=(20, 20),
-                      pady=(20, 20),
-                      sticky="nsew")
+    #self.textbox = customtkinter.CTkTextbox(self, width=250)
+    #self.textbox.grid(row=0,
+    #                  column=1,
+    #                  padx=(20, 20),
+    #                  pady=(20, 20),
+    #                  sticky="nsew")
 
     # create tabview Method Selection
     self.tabview = customtkinter.CTkTabview(self, width=150)
@@ -151,7 +160,7 @@ class App(customtkinter.CTk):
     # create progressbar frame
     self.slider_progressbar_frame = customtkinter.CTkFrame(
         self, fg_color="transparent")
-    self.slider_progressbar_frame.grid(row=1,
+    self.slider_progressbar_frame.grid(row=2,
                                        column=1,
                                        padx=(20, 0),
                                        pady=(20, 0),
@@ -196,10 +205,10 @@ class App(customtkinter.CTk):
     self.appearance_mode_optionemenu.set("Light")
     self.scaling_optionemenu.set("100%")
     self.progressbar_1.configure(mode="determinate",determinate_speed= 0.1)
-    self.textbox.insert(
-      0.0, "Demo for UNCC_ECE_Probe.\n\n " +
-      "Blank Window \n \n "
-      * 4)
+    #self.textbox.insert(
+    #  0.0, "Demo for UNCC_ECE_Probe.\n\n " +
+    #  "Blank Window \n \n "
+    #  * 4)
 # FUNCTIONS Define
 
   def button_stop(self):    
@@ -231,7 +240,7 @@ class App(customtkinter.CTk):
     os.system('"%s' % file_path)
 
   def open_IV_program(self):
-    IV_path = 'c:\Contact-Resistance.xls'
+    IV_path = '"c:/Users/Student II/Documents/UNCC_ECE_PROBE_24_GUI/test.txt"'
     self.label_open_iv.configure(text=IV_path)
     os.system('"%s' % IV_path)
 
@@ -261,3 +270,4 @@ class App(customtkinter.CTk):
 if __name__ == "__main__":
   app = App()
   app.mainloop()
+
