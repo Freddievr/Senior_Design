@@ -240,7 +240,7 @@ class App(customtkinter.CTk):
     os.system('"%s' % file_path)
 
   def open_IV_program(self):
-    IV_path = '"c:/Users/Student II/Documents/UNCC_ECE_PROBE_24_GUI/test.txt"'
+    IV_path = '"c:/Users/Freddie Vasquez-Rios/Downloads/test.txt"'
     self.label_open_iv.configure(text=IV_path)
     os.system('"%s' % IV_path)
 
