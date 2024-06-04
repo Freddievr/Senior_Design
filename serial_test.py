@@ -10,7 +10,7 @@ for port in ports:
     print(str(port))
           
 val = input("Select Port: COM")
-
+#val = self.COM_input_dialog()                                        title="Select Port")
 for x in range(0,len(ports_list)):
     if ports_list[x].startswith("COM" + str(val)):
         port_var = "COM" + str(val)
@@ -22,7 +22,7 @@ serial_inst.open()
 
 while True:
     command = input("Arduino Command: (ON/OFF): ")
-    serial_inst.write(command.encode('utf-8'))
+    serial_inst.write(command.encode('utf-8'))  #NEEDS TO BE UPDATED FOR GUI
 
     if command == 'EXIT':
         exit()

@@ -4,6 +4,8 @@ import customtkinter
 import os
 from tkinter import filedialog
 from PIL import Image
+import serial.tools.list_ports
+
 
 customtkinter.set_appearance_mode(
     "Light")  # Modes: "System" (standard), "Dark", "Light"
@@ -18,7 +20,7 @@ class App(customtkinter.CTk):
 
     # configure window
     self.title("UNCC_ECE_PROBE")
-    self.geometry(f"{1450}x{750}")
+    self.geometry(f"{1400}x{750}")
 
     # configure grid layout (4x4)
     self.grid_columnconfigure(1, weight=1)
@@ -221,11 +223,12 @@ class App(customtkinter.CTk):
 
 
   def button_start(self):
-    print("button clicked")
+    print("Program Started")
     self.progressbar_1.start()
     self.resume_button.configure(state="enabled")
     self.start_button.configure(state="disabled",text_color_disabled = "green", text = "Start")
     self.stop_button.configure(state="enabled")
+    self.connect_arduino()
 
   def button_resume(self):
     print("button clicked")
@@ -248,6 +251,44 @@ class App(customtkinter.CTk):
     arduino_path = filedialog.askopenfilename()
     self.label_open_arduino.configure(text=arduino_path)
     os.system('"%s' % arduino_path)
+    
+  def connect_arduino(self):
+    ports = serial.tools.list_ports.comports()
+    serial_inst = serial.Serial()
+    ports_list = []
+    port_val = "COM5" ## NEEDS TO BE FIXED FOR PORT_VAL NOT READING
+
+    for port in ports:
+        ports_list.append(str(port))
+        print(str(port))
+              
+    val = self.COM_input_dialog()
+    for x in range(0,len(ports_list)):
+        if ports_list[x].startswith("COM" + str(val)):
+            port_val = "COM" + str(val)
+            print(serial_inst.port)
+
+    serial_inst.baudrate = 9600
+    serial_inst.port = port_val
+    serial_inst.open()
+
+    while True:
+        command = input("Arduino Command: (ON/OFF): ")
+        serial_inst.write(command.encode('utf-8'))  #NEEDS TO BE UPDATED FOR GUI
+
+        if command == 'EXIT':
+            return None  
+
+  def UNO_input_dialog(self): 
+    val = customtkinter.CTkInputDialog(text="Arduino Command: (ON/OFF): ",
+                                          title="Arduino Command")
+    self.serial_inst.write(val.encode('utf-8'))
+
+  def COM_input_dialog(self): 
+    val = customtkinter.CTkInputDialog(text="Select Port: COM",
+                                          title="Select Port")
+    print("Selected Port:", val.get_input())
+    return val
 # given
   def open_input_dialog_event(self):
     dialog = customtkinter.CTkInputDialog(text="Type in Value:",
