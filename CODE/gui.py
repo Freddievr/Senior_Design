@@ -86,8 +86,8 @@ class App(customtkinter.CTk):
 
 
     # Create Picture
-    self.image1 = customtkinter.CTkImage(light_image=Image.open('Images/2.jpg'),
-    dark_image=Image.open('Images/2.jpg'),
+    self.image1 = customtkinter.CTkImage(light_image=Image.open('Images/1.jpg'),
+    dark_image=Image.open('Images/1.jpg'),
     size=(600,300))
     self.image1_label = customtkinter.CTkLabel(self, text = "", image=self.image1)
     self.image1_label.grid(column=1,row=0)
