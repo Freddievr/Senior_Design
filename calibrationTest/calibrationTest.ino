@@ -1,68 +1,46 @@
-// Calibration button pins
-#define buttonPin1 6
-#define buttonPin2 5
-// Stepper pins
-#define dirPinM1 8
-#define stepPinM1 9
-// Motor positions [initial final]
-int steps[2] = {0, 0};
-// Motor movement variables
-int x;
-int motorDistance = 3000;
-int motorSpeed = 100; // Lower is faster
+#include <Arduino.h>
+#include <AccelStepper.h>
+#include <MultiStepper.h>
+#include <string.h>
+#include <Stream.h>
+
+// Defined Variables
+#define MAX_MOTOR_SPEED 100
+
+// Global Variables
+String streamData;
+String parsedData;
+
+// Initialize Stepper motors
+// Function nomenclature motorName(# of Required Input pin(STEP and DIR), STEP, DIR)
+AccelStepper stepper1(AccelStepper::FULL2WIRE, 5, 6);
+AccelStepper stepper2(AccelStepper::FULL2WIRE, 7, 8);
+
+// Creates a group for steppers motors to be added
+MultiStepper steppers;
+
+// Forward declare functions
+String parseDataStream();
 
 void setup() {
   Serial.begin(9600);
-  pinMode(stepPinM1, OUTPUT);  // set Pin9 as PUL
-  pinMode(dirPinM1, OUTPUT);   // set Pin8 as DIR
-  // initialize the pushbutton pin as an input:
-  pinMode(buttonPin1, INPUT_PULLUP);
-  pinMode(buttonPin2, INPUT_PULLUP);
+
+  // Configure each stepper 100 steps per second
+  stepper1.setMaxSpeed(MAX_MOTOR_SPEED);
+  stepper2.setMaxSpeed(MAX_MOTOR_SPEED);
+
+  // Add them to MultiStepper group to manage
+  steppers.addStepper(stepper1);
+  steppers.addStepper(stepper2);
 }
 void loop() {
   
-  while (digitalRead(buttonPin1)) {
-    digitalWrite(dirPinM1, HIGH);
-    digitalWrite(stepPinM1, HIGH);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-  }
-  delay(1000);
-// Slowly move away from switch until switch is open
-  while (!digitalRead(buttonPin1)) {
-    digitalWrite(dirPinM1, LOW);
-    digitalWrite(stepPinM1, HIGH);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-  }
-  steps[0] = 0;
-  Serial.println(steps[0]);
-  delay(1000);
-// Moves in opposite direction to find max travel distance
-  while (digitalRead(buttonPin2)) {
-    digitalWrite(dirPinM1, LOW);
-    digitalWrite(stepPinM1, HIGH);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-    steps[1]++;
-  }
-// Slowly move away from switch until switch is open
-  while (!digitalRead(buttonPin2)) {
-    Serial.println(steps[1]);
-    digitalWrite(dirPinM1, HIGH);
-    digitalWrite(stepPinM1, HIGH);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(stepPinM1, LOW);
-    delayMicroseconds(motorSpeed);
-  }
-  while(1){
-    digitalWrite(stepPinM1, HIGH);
-  }
 }
 
-void calibrateHomeMinMax(){
-
+String parseDataStream(){
+  if (Serial.available()){
+    parsedData = Serial.readStringUntil('\n');
+    parsedData.trim();
+  }
+  return parsedData;
 }

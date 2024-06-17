@@ -258,6 +258,7 @@ class App(customtkinter.CTk):
     ports_list = []
     port_val = "COM5" ## NEEDS TO BE FIXED FOR PORT_VAL NOT READING
 
+# Connects Arduino to PC
     for port in ports:
         ports_list.append(str(port))
         print(str(port))
@@ -272,6 +273,7 @@ class App(customtkinter.CTk):
     serial_inst.port = port_val
     serial_inst.open()
 
+# Sending a test message to Arduino
     while True:
         command = input("Arduino Command: (ON/OFF): ")
         serial_inst.write(command.encode('utf-8'))  #NEEDS TO BE UPDATED FOR GUI
