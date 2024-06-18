@@ -1,51 +1,39 @@
-#define pulPinMotor 8
-#define dirPinMotor 7
-// #define pulPinMotor2 13
-// #define dirPinMotor2 4
+#define pulPinMotor1 8
+#define dirPinMotor1 7
+#define pulPinMotor2 13
+#define dirPinMotor2 4
 #define stepsPerRev 800
-#define stepperSpeed 700
+#define stepperSpeed 500
 #define FOR 1
 #define BAC 0
 
-void stepperRun(int steps, int direction);
+void stepperRun(int steps, int direction, int pulPin, int dirPin);
 
 void setup() {
-  pinMode(pulPinMotor, OUTPUT);  // set Pin9 as PUL
-  pinMode(dirPinMotor, OUTPUT);  // set Pin8 as DIR
+  pinMode(pulPinMotor1, OUTPUT);    // set pin as PUL
+  pinMode(dirPinMotor1, OUTPUT);    // set pin as DIR
+  pinMode(pulPinMotor2, OUTPUT);    // set pin as PUL
+  pinMode(dirPinMotor2, OUTPUT);    // set pin as DIR
 }
 void loop() {
-  // stepperRun(stepsPerRev, FOR);
-  // stepperRun(stepsPerRev, BAC, pulPinMotor1, dirPinMotor1);
-  stepperRun(stepsPerRev, FOR);
-  // stepperRun(stepsPerRev, BAC, pulPinMotor2, dirPinMotor2);
-  // stepperRun(stepsPerRev, FOR, pulPinMotor2, dirPinMotor2);
-  // digitalWrite(dirPin, test);     // set high level direction
-  // for (x = 0; x < stepsPerRev; x++)  // repeat 400 times a revolution when setting 400 on driver
-  // {
-  //   digitalWrite(pulPin, HIGH);   // Output high
-  //   delayMicroseconds(stepperSpeed);  // set rotate speed
-  //   digitalWrite(pulPin, LOW);    // Output low
-  //   delayMicroseconds(stepperSpeed);  // set rotate speed
-  // }
-  // delay(1000);           //pause 1 second
-  // digitalWrite(dirPin, BAC);  // set high level direction
-  // for (x = 0; x < stepsPerRev; x++) {
-  //   digitalWrite(pulPin, HIGH);
-  //   delayMicroseconds(stepperSpeed);
-  //   digitalWrite(pulPin, LOW);
-  //   delayMicroseconds(stepperSpeed);
-  // }
-  // delay(1000);
+  while (1){
+
+  }
+  stepperRun(stepsPerRev, BAC, pulPinMotor1, dirPinMotor1);
+  stepperRun(stepsPerRev, FOR, pulPinMotor1, dirPinMotor1);
+  stepperRun((stepsPerRev), BAC, pulPinMotor2, dirPinMotor2);
+  stepperRun((stepsPerRev), FOR, pulPinMotor2, dirPinMotor2);
+ 
 }
 
-void stepperRun(int steps, int direction){  
-  digitalWrite(dirPinMotor, direction);     // set high level direction
-  for (int x = 0; x < steps; x++)  // repeat 400 times a revolution when setting 400 on driver
+void stepperRun(int steps, int direction, int pulPin, int dirPin){  
+  digitalWrite(dirPin, direction);  // set direction level
+  for (int x = 0; x < steps; x++)   // repeat "steps" times a revolution
   {
-    digitalWrite(pulPinMotor, HIGH);   // Output high
-    delayMicroseconds(stepperSpeed);  // set rotate speed
-    digitalWrite(pulPinMotor, LOW);    // Output low
-    delayMicroseconds(stepperSpeed);  // set rotate speed
+    digitalWrite(pulPin, HIGH);     // Output high
+    delayMicroseconds(stepperSpeed);// set rotate speed
+    digitalWrite(pulPin, LOW);      // Output low
+    delayMicroseconds(stepperSpeed);// set rotate speed
   }
-  delay(1000); // May be unnecessary
+  delay(1000);                      // May be unnecessary
 }
