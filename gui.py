@@ -5,7 +5,7 @@ import os
 from tkinter import filedialog
 from PIL import Image
 import serial.tools.list_ports
-
+import time
 
 customtkinter.set_appearance_mode(
     "Light")  # Modes: "System" (standard), "Dark", "Light"
@@ -133,9 +133,6 @@ class App(customtkinter.CTk):
     self.stop_button = customtkinter.CTkButton(
       master=self.button_frame, command=self.button_stop, fg_color="red", text="Stop", width = 150)
     self.stop_button.grid(row=3, column=2, pady=20, padx=20, sticky="n")
-  # Check Variable Values Button 
-    self.sidebar_button_1 = customtkinter.CTkButton(self.sidebar_frame, text= "Values", command=self.var_label_button)
-    self.sidebar_button_1.grid(row=4, column=0, padx=20, pady=10)
   # set default values
     self.stop_button.configure(state="disabled")
     self.resume_button.configure(state="disabled")
@@ -158,7 +155,8 @@ class App(customtkinter.CTk):
     self.resume_button.configure(state="enabled")
     self.start_button.configure(state="disabled",text_color_disabled = "green", text = "Start")
     self.stop_button.configure(state="enabled")
-    self.connect_arduino()
+    self.send_button = customtkinter.CTkButton(self.sidebar_frame, text= "Send Values", command=self.var_send_button)
+    self.send_button.grid(row=5, column=0, padx=20, pady=10)
 
   def button_resume(self):
     print("button clicked")
@@ -186,37 +184,55 @@ class App(customtkinter.CTk):
     ports = serial.tools.list_ports.comports()
     serial_inst = serial.Serial()
     ports_list = []
-    port_val = 'COM1'
+    port_val = 'COM3'
 
     for port in ports:
         ports_list.append(str(port))
         print(str(port))
-              
-    for x in range(0,len(ports_list)):
-        val = self.COM_input_dialog()
-        if ports_list[x].startswith("COM" +str(val)):
-            port_val = "COM" + str(val)
-            print(serial_inst.port)
+    
+    # Commented OUT FOR DEMO          #
+    #for x in range(0,len(ports_list)):
+    #    val = self.COM_input_dialog()
+    #    if ports_list[x].startswith("COM" +str(val)):
+    #        port_val = "COM" + str(val)
+    #        print(serial_inst.port)
 
     serial_inst.baudrate = 9600
     serial_inst.port = port_val
     serial_inst.open()
 
-    while True:
-        command = input("Arduino Command: (ON/OFF): ")
-        #serial_inst.write(command.encode('utf-8'))  #NEEDS TO BE UPDATED FOR GUI
-
-        ## SEND VARIABLES
-        global gap_width
+    global send_button
+    #send_button = 0   #CHANGE
+    # Send Variable Values Button   #FIX
+    #self.send_button = customtkinter.CTkButton(self.sidebar_frame, text= "Send Values", command=self.var_send_button)
+    #self.send_button.grid(row=5, column=0, padx=20, pady=10)
+       
         
+    ## SEND VARIABLES 
+    while True:
+        global gap_width
+        global num_fingers
+     
+        print("begin loop") 
+        #input("Press Enter to continue...")
         #print("gap width", gap_width)
         #print("# of fingers:", num_fingers)
-
-
-
-
-        if command == 'EXIT':
-            return None  
+        #gap_width = gap_width + '\r'
+        #num_fingers = num_fingers + '\r'
+        #serial_inst.write(gap_width.encode('utf-8'))  
+        #serial_inst.write(num_fingers.encode('utf-8'))
+        
+        
+        if send_button == 1:
+          variables = gap_width + "," + num_fingers
+          variables = variables + '\n'
+          serial_inst.write(variables.encode('utf-8'))
+          #serial_inst.flush()
+          print("SENT:", variables) 
+          #time.sleep(5)
+          #return None       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
+        else:
+            return None 
 
   def UNO_input_dialog(self): 
     val = customtkinter.CTkInputDialog(text="Arduino Command: (ON/OFF): ",
@@ -235,44 +251,40 @@ class App(customtkinter.CTk):
                                           title="Input Variables")
     print("Input Value:", dialog.get_input())
 
-  def change_appearance_mode_event(self, new_appearance_mode: str):
+  def change_appearance_mode_event(self, new_appearance_mode: str):   #Remove near end
     customtkinter.set_appearance_mode(new_appearance_mode)
 
   def change_scaling_event(self, new_scaling: str):
     new_scaling_float = int(new_scaling.replace("%", "")) / 100
     customtkinter.set_widget_scaling(new_scaling_float)
-
-  def var_label_button(self):
-    self.label_gap_width = customtkinter.CTkLabel(self, text = "Gap Width: " + gap_width) 
-    self.label_gap_width.grid(row=0, column=2, padx=2, pady=80, sticky="n")
-    self.label_num_fingers = customtkinter.CTkLabel(self, text = "# of Fingers: " + num_fingers)
-    self.label_num_fingers.grid(row=0, column=2, padx=2, pady=2, sticky="ew")
-
-  def combobox_callback(choice):    ## NOT NEEDED
-    print("Selected Method:", choice)
     
-  def optionmenu_callback(choice):  ## NOT NEEDED
-    print("Dropdown Clicked:", choice)  
+  def var_send_button(self): # Send Values Button # NOT NEEDED (Placeholder)
+    global send_button
+    send_button = 1
+    self.connect_arduino()
+    return send_button
 
 def open_input_parameters(selection):
         dialog = customtkinter.CTkInputDialog(text="Type in Value:",
                                           title=selection)
         var_name = selection
         var_data = dialog.get_input()
-        
                
         if (var_name == "Gap Width"):
           global gap_width
           gap_width = var_data
-          print("gap width", gap_width)
+          #print("gap width:", gap_width)
+          label_gap_width = customtkinter.CTkLabel(app, text = "Gap Width: " + gap_width)   #MAKE TRANSPARENT AND INIT EARLIER, .UPDATE TEXT AND COLOR HERE
+          label_gap_width.grid(row=0, column=2, padx=2, pady=80, sticky="n")
           return gap_width  
         else:
           global num_fingers
           num_fingers = var_data
-          print("# of fingers:", num_fingers)
+          #print("# of fingers:", num_fingers)
+          label_num_fingers = customtkinter.CTkLabel(app, text = "# of Fingers: " + num_fingers)
+          label_num_fingers.grid(row=0, column=2, padx=2, pady=2, sticky="ew")
           return num_fingers
  
-
 if __name__ == "__main__":
   app = App()
   app.mainloop()
