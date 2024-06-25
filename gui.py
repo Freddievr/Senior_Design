@@ -93,7 +93,7 @@ class App(customtkinter.CTk):
     self.optionmenu_1 = customtkinter.CTkOptionMenu(
         self.tabview.tab("Parameters"),
         dynamic_resizing=False,
-        values=["Gap Width", "# of Fingers"],
+        values=["Gap Width (mm)", "# of Fingers"],
         command=open_input_parameters,
         variable=self.optionmenu_1_var)
     self.optionmenu_1.grid(row=0, column=0, padx=10, pady=(10, 10))
@@ -137,36 +137,26 @@ class App(customtkinter.CTk):
     self.stop_button.configure(state="disabled")
     self.resume_button.configure(state="disabled")
     self.scaling_optionemenu.set("100%")
-    self.progressbar_1.configure(mode="determinate",determinate_speed= 0.01)
+    self.progressbar_1.configure(mode="determinate",determinate_speed= 0.1)
 
 # FUNCTIONS Define
 
-  def var_send_button(self): # Send Values Button # NOT NEEDED (Placeholder)
-    global send_button
-    send_button = 1
-
-    self.start_button.configure(state="enabled", text="Start",command=self.button_start)
-    self.resume_button.configure(state="disabled")
-    self.stop_button.configure(state="enabled")
-    self.connect_arduino()
-    return send_button
-  
   def button_stop(self):    
     self.progressbar_1.stop()
     self.progressbar_1.set(0.0)
     print("STOPPED")
     self.resume_button.configure(state="disabled")
-    self.start_button.configure(state="enabled", text = "Start",command=self.button_start)
+    self.start_button.configure(state="enabled", text = "Start")
     self.stop_button.configure(state="disabled")
 
   def button_start(self):
     print("Program Started")
     self.progressbar_1.start()
-    self.start_button.configure(text="Send Values",command=self.var_send_button)
-    #self.start_button.configure(text="Start",command=self.button_start)
+    self.resume_button.configure(state="enabled")
+    self.start_button.configure(state="disabled",text_color_disabled = "green", text = "Start")
     self.stop_button.configure(state="enabled")
-    #self.send_button = customtkinter.CTkButton(self.button_frame, text= "Send Values", command=self.var_send_button, width=150)
-    #self.send_button.grid(row=1, column=2, padx=20, pady=20, sticky="n")
+    self.send_button = customtkinter.CTkButton(self.sidebar_frame, text= "Send Values", command=self.var_send_button)
+    self.send_button.grid(row=5, column=0, padx=20, pady=10)
 
   def button_resume(self):
     print("button clicked")
@@ -174,7 +164,6 @@ class App(customtkinter.CTk):
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Resume" )
     self.stop_button.configure(state="enabled")
-    
     
   def open_program(self):
     file_path = filedialog.askopenfilename()
@@ -268,6 +257,12 @@ class App(customtkinter.CTk):
   def change_scaling_event(self, new_scaling: str):
     new_scaling_float = int(new_scaling.replace("%", "")) / 100
     customtkinter.set_widget_scaling(new_scaling_float)
+    
+  def var_send_button(self): # Send Values Button # NOT NEEDED (Placeholder)
+    global send_button
+    send_button = 1
+    self.connect_arduino()
+    return send_button
 
 def open_input_parameters(selection):
         dialog = customtkinter.CTkInputDialog(text="Type in Value:",
@@ -275,7 +270,7 @@ def open_input_parameters(selection):
         var_name = selection
         var_data = dialog.get_input()
                
-        if (var_name == "Gap Width"):
+        if (var_name == "Gap Width (mm)"):
           global gap_width
           gap_width = var_data
           #print("gap width:", gap_width)
