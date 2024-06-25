@@ -6,11 +6,11 @@
 #define stepperSpeed 500
 #define FOR 1
 #define BAC 0
-float Gap_Width;
-int Num_Fingers;
-int Curr_Finger;
+float gapWidth;
+int numFingers;
+int currFinger;
 char myData[30] = {0};
-float stepsPerRev;
+int stepsPerRev;
 
 void stepperRun(int steps, int direction, int pulPin, int dirPin);
 
@@ -30,24 +30,25 @@ void loop() {
     byte m = Serial.readBytesUntil('\n', myData, 30);
     myData[m] = '\0'; //null-byte
  
-    Gap_Width = atof(strtok(myData, ","));
-    stepsPerRev = (Gap_Width * 800);
-    //Serial.print("Gap_Width = "); Serial.println(Gap_Width, 2);
-
-    Num_Fingers = atoi(strtok(NULL, ","));
-    //Serial.print("Num_Fingers = "); Serial.println(Num_Fingers);
+    gapWidth = atof(strtok(myData, ","));
+    stepsPerRev = gapWidth;
+    //Serial.print("gapWidth = "); Serial.println(gapWidth, 2);
+    //Serial.print("Steps "); Serial.println(stepsPerRev);
+    numFingers = atoi(strtok(NULL, ","));
+    //Serial.print("Num_Fingers = "); Serial.println(numFingers);
     delay(1000);
     Serial.end();     }
     //ResetHoriz(1000);
-  for(Curr_Finger = 0; Curr_Finger < Num_Fingers; Curr_Finger++){     
+  for(currFinger = 0; currFinger < numFingers; currFinger++){     
       delay(500);
 
       stepperRun(stepsPerRev, BAC, pulPinMotor1, dirPinMotor1);
       stepperRun(stepsPerRev/2, BAC, pulPinMotor2, dirPinMotor2);
       stepperRun(stepsPerRev/2, FOR, pulPinMotor2, dirPinMotor2);
       //Serial.print("Finger: #"); Serial.println(Curr_Finger+1);
+      //Serial.print("Steps"); Serial.println(stepsPerRev);
       delay(1000);
-      if ((Curr_Finger+1) == Num_Fingers){
+      if ((currFinger+1) == numFingers){
         //Serial.print("Measurements Done");
         delay(1000);
         exit(0);
