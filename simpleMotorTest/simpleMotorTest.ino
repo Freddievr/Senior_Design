@@ -7,6 +7,8 @@
 #define FOR 1
 #define BAC 0
 
+// (desired travel distance)/pitch * pulse per one revolution
+
 void stepperRun(int steps, int direction, int pulPin, int dirPin);
 
 void setup() {
@@ -16,9 +18,6 @@ void setup() {
   pinMode(dirPinMotor2, OUTPUT);    // set pin as DIR
 }
 void loop() {
-  while (1){
-
-  }
   stepperRun(stepsPerRev, BAC, pulPinMotor1, dirPinMotor1);
   stepperRun(stepsPerRev, FOR, pulPinMotor1, dirPinMotor1);
   stepperRun((stepsPerRev), BAC, pulPinMotor2, dirPinMotor2);
@@ -28,8 +27,7 @@ void loop() {
 
 void stepperRun(int steps, int direction, int pulPin, int dirPin){  
   digitalWrite(dirPin, direction);  // set direction level
-  for (int x = 0; x < steps; x++)   // repeat "steps" times a revolution
-  {
+  for (int x = 0; x < steps; x++) { // repeat "steps" times a revolution
     digitalWrite(pulPin, HIGH);     // Output high
     delayMicroseconds(stepperSpeed);// set rotate speed
     digitalWrite(pulPin, LOW);      // Output low

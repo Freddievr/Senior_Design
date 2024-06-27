@@ -21,6 +21,7 @@ void setup() {
   pinMode(dirPinMotor2, OUTPUT);    // set pin as DIR
   Serial.begin(9600);
   Serial.flush();
+  currFinger = 0;
 }
 
 void loop() {
@@ -30,33 +31,28 @@ void loop() {
     byte m = Serial.readBytesUntil('\n', myData, 30);
     myData[m] = '\0'; //null-byte
  
-    gapWidth = atof(strtok(myData, ","));
+    gapWidth = atof(strtok(myData, ",")); // Separates string using "," as delimiter
     stepsPerRev = gapWidth;
     //Serial.print("gapWidth = "); Serial.println(gapWidth, 2);
     //Serial.print("Steps "); Serial.println(stepsPerRev);
-    numFingers = atoi(strtok(NULL, ","));
+    numFingers = atoi(strtok(NULL, ",")); // Converts ASCII number to integer
     //Serial.print("Num_Fingers = "); Serial.println(numFingers);
     delay(1000);
-    Serial.end();     }
-    //ResetHoriz(1000);
-  for(currFinger = 0; currFinger < numFingers; currFinger++){     
-      delay(500);
-
-      stepperRun(stepsPerRev, BAC, pulPinMotor1, dirPinMotor1);
-      stepperRun(stepsPerRev/2, BAC, pulPinMotor2, dirPinMotor2);
-      stepperRun(stepsPerRev/2, FOR, pulPinMotor2, dirPinMotor2);
-      //Serial.print("Finger: #"); Serial.println(Curr_Finger+1);
-      //Serial.print("Steps"); Serial.println(stepsPerRev);
-      delay(1000);
-      if ((currFinger+1) == numFingers){
-        //Serial.print("Measurements Done");
-        delay(1000);
-        exit(0);
-
-
-        
-      }
+    Serial.end();     
   }
+    //ResetHoriz(1000);
+  do {   
+    delay(500);
+    stepperRun(stepsPerRev, BAC, pulPinMotor1, dirPinMotor1);
+    stepperRun(stepsPerRev/2, BAC, pulPinMotor2, dirPinMotor2);
+    stepperRun(stepsPerRev/2, FOR, pulPinMotor2, dirPinMotor2);
+    //Serial.print("Finger: #"); Serial.println(Curr_Finger+1);
+    //Serial.print("Steps"); Serial.println(stepsPerRev);
+    delay(1000);
+    currFinger++;
+    // exit(0);      
+  }
+  while(currFinger != numFingers);
 }
 
 void stepperRun(int steps, int direction, int pulPin, int dirPin){  

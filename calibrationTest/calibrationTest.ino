@@ -1,112 +1,115 @@
 #include <Arduino.h>
-#include <AccelStepper.h>
-#include <MultiStepper.h>
 #include <string.h>
 #include <Stream.h>
 
 // Defined Variables
-#define MAX_MOTOR_SPEED 2000.0
+#define MAX_MOTOR_SPEED 2000
 #define HORZ_HOME_SW 11
 #define VERT_HOME_SW 10
-#define CALIBRATE_MOTOR_SPEED 1000.0
+#define CALIBRATE_MOTOR_SPEED 1000
+#define PUL_PIN_MOTOR_1 8
+#define DIR_PIN_MOTOR_1 7
+#define PUL_PIN_MOTOR_2 13
+#define DIR_PIN_MOTOR_2 4
+#define stepsPerRev 800
+#define stepperCalibrateSpeed 500
+#define FOR 1
+#define BAC 0
 
 // Global Variables
-String streamData;
-String parsedData;
 bool homeComplete = false;
-long initialHoming = 400;
-
-// Initialize Stepper motors
-// Function nomenclature motorName(# of Required Input pin(STEP and DIR), STEP, DIR)
-AccelStepper stepper1(AccelStepper::FULL2WIRE, 7, 8);
-AccelStepper stepper2(AccelStepper::FULL2WIRE, 6, 5);
-
-// Creates a group for steppers motors to be added
-// MultiStepper steppers;
+int initialHoming[2];
+char myData[30] = {0};
 
 // Forward declare functions
-String parseDataStream();
+void parseDataStream();
 void calibrateHome();
+void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirPin);
 
 void setup() {
   Serial.begin(9600);
 
-  // Configure each stepper # steps per second
-  stepper1.setMaxSpeed(MAX_MOTOR_SPEED);
-  stepper2.setMaxSpeed(MAX_MOTOR_SPEED);
-
-  // Add them to MultiStepper group to manage
-  // steppers.addStepper(stepper1);
-  // steppers.addStepper(stepper2);
-
   // Configure button settings
   pinMode(HORZ_HOME_SW, INPUT_PULLUP);
   pinMode(VERT_HOME_SW, INPUT_PULLUP);
-  stepper1.setCurrentPosition(0);
+  pinMode(PUL_PIN_MOTOR_1, OUTPUT);  // set pin as PUL
+  pinMode(DIR_PIN_MOTOR_1, OUTPUT);  // set pin as DIR
+  pinMode(PUL_PIN_MOTOR_2, OUTPUT);  // set pin as PUL
+  pinMode(DIR_PIN_MOTOR_2, OUTPUT);  // set pin as DIR
 }
 void loop() {
-  // calibrateHome();
-  // stepper1.setCurrentPosition(0);
-  stepper1.moveTo(initialHoming);
-  // stepper1.setMaxSpeed(CALIBRATE_MOTOR_SPEED);
-  stepper1.setSpeed(CALIBRATE_MOTOR_SPEED);
-  // stepper1.setAcceleration(CALIBRATE_MOTOR_SPEED);
-  // stepper1.move(initialHoming);
-  // initialHoming -= 50;
-  stepper1.run();
-  delay(5);
+  calibrateHome();
 }
 
-void calibrateHome(){
-  while (digitalRead(HORZ_HOME_SW)){
-    stepper1.setMaxSpeed(CALIBRATE_MOTOR_SPEED);
-    stepper1.setSpeed(CALIBRATE_MOTOR_SPEED);
-    stepper1.move(initialHoming);
-    initialHoming -= 50;
-    stepper1.run();
+/*=============================================================== 
+Finds the home position by backing slowly into the limit switch.
+Once it detects a button press it should stop and slowly back off
+until switch is open again. This will be the "initialHoming"
+position
+================================================================*/
+void calibrateHome() {
+  if (homeComplete){
+    
+  }
+  // Moves slowly into switch is not active
+  while (digitalRead(HORZ_HOME_SW)) { // Waiting for button press
+    stepperRun(stepsPerRev, BAC, stepperCalibrateSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
     delay(5);
   }
-
-  stepper1.setCurrentPosition(0);
-  stepper1.setMaxSpeed(CALIBRATE_MOTOR_SPEED);
-  // stepper1.setAcceleration(CALIBRATE_MOTOR_SPEED);
-  initialHoming = 1;
-  
-  while (!digitalRead(HORZ_HOME_SW)){
-    stepper1.moveTo(initialHoming);
-    initialHoming++;
-    stepper1.run();
+  // Slowly backs off switch until its open
+  while (!digitalRead(HORZ_HOME_SW)) { // Coming off button press
+    stepperRun(stepsPerRev, FOR, stepperCalibrateSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
     delay(5);
   }
-  stepper1.setCurrentPosition(0);
+  delay(500);
+  initialHoming[0] = 0;  // Sets initial position for horizontal
   
-  // initialHoming = -1;
-  // while (digitalRead(VERT_HOME_SW)){
-  //   stepper2.setSpeed(CALIBRATE_MOTOR_SPEED);
-  //   stepper2.moveTo(initialHoming);
-  //   initialHoming--;
-  //   stepper2.run();
-  //   delay(5);
-  // }
-
-  // stepper2.setCurrentPosition(0);
-  // stepper2.setSpeed(CALIBRATE_MOTOR_SPEED);
-  // stepper2.setAcceleration(CALIBRATE_MOTOR_SPEED);
-  // initialHoming = 1;
-  
-  // while (!digitalRead(VERT_HOME_SW)){
-  //   stepper2.moveTo(initialHoming);
-  //   initialHoming++;
-  //   stepper2.run();
-  //   delay(5);
-  // }
-  // stepper2.setCurrentPosition(0);
+  // Begins calibration for vertical
+  while (digitalRead(VERT_HOME_SW)) { // Waiting for button press
+    stepperRun(stepsPerRev, BAC, stepperCalibrateSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+    delay(5);
+  }
+  while (!digitalRead(VERT_HOME_SW)) { // Coming off button press
+    stepperRun(stepsPerRev, FOR, stepperCalibrateSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+    delay(5);
+  }
+  initialHoming[1] = 0;  // Sets initial position for vertical
+  homeComplete = true;   // Completes calibration
 }
 
-String parseDataStream(){
-  if (Serial.available()){
-    parsedData = Serial.readStringUntil('\n');
-    parsedData.trim();
+/*=============================================================== 
+Sending a pulse to the stepper motor by hand is done my making a
+PWM signal. The number of signals for a single rotation of the
+stepper motor is dependant on the motor driver settings
+steps: how many times to step the motor
+direction: direction motor spins typically CW or CCW
+pulPin: pin for pulsing the motor sent to the motor driver
+dirPin: pin for setting motor direction on motor driver
+================================================================*/
+void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirPin) {
+  digitalWrite(dirPin, direction);    // set direction level
+  for (int x = 0; x < steps; x++) {   // repeat "steps" times a revolution
+    digitalWrite(pulPin, HIGH);       // Output high
+    delayMicroseconds(stepperSpeed);  // set rotate speed
+    digitalWrite(pulPin, LOW);        // Output low
+    delayMicroseconds(stepperSpeed);  // set rotate speed
   }
-  return parsedData;
+  delay(1000);  // Maybe unnecessary
+}
+
+void parseDataStream() {
+  byte n = Serial.available();
+  if (n != 0) {
+    byte m = Serial.readBytesUntil('\n', myData, 30);
+    myData[m] = '\0';  //null-byte
+
+    float gapWidth = atof(strtok(myData, ","));             // Separates string using "," as delimiter
+    float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
+    int numFingers = atoi(strtok(NULL, ","));             // Converts ASCII number to integer
+    Serial.print(gapWidth);
+    Serial.print(",");
+    Serial.println(calculatedSteps);
+    delay(1000);
+    Serial.end();
+  }
 }
