@@ -47,14 +47,16 @@ void setup() {
 void loop() {
   parseDataStream();
   
-  //resetHoriz(1000);
+  //resetHoriz(2000);
+  if (!homeComplete){
   calibrateHome();
+  }
   for(currFinger = 0; currFinger < numFingers; currFinger++){     
       delay(500);
 
       stepperRun(stepsHoriz, BAC, stepperRunSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
-      stepperRun(stepsVert, BAC, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
       stepperRun(stepsVert, FOR, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+      stepperRun(stepsVert, BAC, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
       //Serial.print("Finger: #"); Serial.println(Curr_Finger+1);
       //Serial.print("Steps"); Serial.println(stepsPerRev);
       delay(1000);
@@ -108,11 +110,11 @@ void parseDataStream() {
     myData[m] = '\0';  //null-byte
 
     float gapWidth = atof(strtok(myData, ","));             // Separates string using "," as delimiter
-    float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
     numFingers = atoi(strtok(NULL, ","));             // Converts ASCII number to integer
+    float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
     Serial.print(gapWidth);
     Serial.print(",");
-    Serial.println(calculatedSteps);
+    Serial.println(numFingers);
     delay(1000);
     Serial.end();
   }
