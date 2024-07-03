@@ -4,14 +4,16 @@ import customtkinter
 import os
 from tkinter import filedialog
 from PIL import Image
+import matplotlib.pyplot as plt
 import serial.tools.list_ports
 import time
+from data import meter_data
+
 
 customtkinter.set_appearance_mode(
     "Light")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme(
     "blue")  # Themes: "blue" (standard), "green", "dark-blue"
-
 
 class App(customtkinter.CTk):
 
@@ -65,6 +67,9 @@ class App(customtkinter.CTk):
       self.sidebar_frame, text="Arduino Path:", anchor="w")
     self.label_open_arduino.grid(row=7, column=0, padx=20, pady=(10, 0))
 
+    self.Open_graph_button = customtkinter.CTkButton(
+      self.sidebar_frame, text="Open Graph", command = self.open_graph)
+    self.Open_graph_button.grid(row=4, column = 0, padx=20, pady=10)
   
     self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame,
                                                 text="UI Scaling:",
@@ -180,6 +185,14 @@ class App(customtkinter.CTk):
     self.label_open_arduino.configure(text=arduino_path)
     os.system('"%s' % arduino_path)
     
+  def open_graph(self):
+    fig1, ax1 = plt.subplots()
+    ax1.plot(list(meter_data.keys()),list(meter_data.values()))
+    ax1.set_title("Contact Resistance vs Distance")
+    ax1.set_xlabel("Finger")
+    ax1.set_ylabel("Resistance")
+    plt.show()   
+     
   def connect_arduino(self):
     ports = serial.tools.list_ports.comports()
     serial_inst = serial.Serial()
@@ -216,6 +229,7 @@ class App(customtkinter.CTk):
         global num_fingers
         
         print("begin loop") 
+        
         #input("Press Enter to continue...")
         #print("gap width", gap_width)
         #print("# of fingers:", num_fingers)
@@ -223,8 +237,7 @@ class App(customtkinter.CTk):
         #num_fingers = num_fingers + '\r'
         #serial_inst.write(gap_width.encode('utf-8'))  
         #serial_inst.write(num_fingers.encode('utf-8'))
-        
-        
+                
         if send_button == 1:
           variables = gap_width + "," + num_fingers
           variables = variables + '\n'
