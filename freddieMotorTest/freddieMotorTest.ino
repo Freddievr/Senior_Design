@@ -58,7 +58,7 @@ void loop() {
 
   do{
   parseDataStream();
-  }while(parsed == false);
+  }while(!parsed);
 
   do{
    for(currFinger; currFinger < numFingers; currFinger++){     
@@ -83,7 +83,7 @@ void loop() {
         exit(0);
       }
 }
-} while(parsed == true);
+} while(parsed);
 }
 
 void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirPin) {
@@ -135,6 +135,7 @@ void parseDataStream() {
     Serial.end();
     parsed = true;
   }
+  Serial.println("parsing...");
 }
 
 void calibrateHome() {

@@ -2,7 +2,7 @@
 import pandas as pd 
   
 # reading given csv file and creating dataframe 
-file = pd.read_csv('test2.asc', sep='/t', engine='python')
+file = pd.read_csv('testResults/test.asc', sep='/t', engine='python')
 file.drop([0, 1, 2],inplace= True)                                          # Drop First Rows (Description/Titles)
 file.drop(file.tail(10).index, inplace = True)                              # Drop Last Rows (Parameters)
 file.rename(columns={'[[DESCRIPTION]]': 'Input'}, inplace = True)
@@ -16,4 +16,6 @@ df["Resistance"] = ""
 
 print(df) 
 
-#df.to_excel('results.xlsx', index=False)                                   # Convert DataFrame to xlsx (excel)
+#list = df.values.tolist()
+#print(list)
+df.to_excel('results.xlsx', index=False)                                   # Convert DataFrame to xlsx (excel)
