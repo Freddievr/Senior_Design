@@ -186,11 +186,10 @@ class App(customtkinter.CTk):
     os.system('"%s' % arduino_path)
     
   def open_graph(self):
-    fig1, ax1 = plt.subplots()
-    ax1.plot(list(meter_data.keys()),list(meter_data.values()))
-    ax1.set_title("Contact Resistance vs Distance")
-    ax1.set_xlabel("Finger")
-    ax1.set_ylabel("Resistance")
+    plt.plot(list(meter_data.keys()),list(meter_data.values()))
+    plt.title("Calculated Contact Resistance")
+    plt.xlabel("Finger")
+    plt.ylabel("Contact Resistance")
     plt.show()   
      
   def connect_arduino(self):
