@@ -7,7 +7,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import serial.tools.list_ports
 import time
-
+from data import meter_data
 
 
 
@@ -45,7 +45,7 @@ class App(customtkinter.CTk):
 
   # Open Program
     self.Open_program_button = customtkinter.CTkButton(
-      self.sidebar_frame, text="Choose Program to Open", command = self.open_program)
+      self.sidebar_frame, text="Choose Program to Open", command = self.plot)
     self.Open_program_button.grid(row=1, column = 0, padx=20, pady=10)
 
     self.Open_IV_program_button = customtkinter.CTkButton(
@@ -235,8 +235,9 @@ class App(customtkinter.CTk):
           time.sleep(1)
           serial_inst.flush()
           print("SENT:", variables) 
-          time.sleep(5)
-          tf = False
+          #time.sleep(5)
+          send_button == 0
+          #tf = False   
           #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
         else:
           return None 
@@ -271,6 +272,14 @@ class App(customtkinter.CTk):
     self.connect_arduino()
     return send_button
 
+  def plot(self):
+    fig1, ax1 = plt.subplots()
+    ax1.plot(list(meter_data.keys()),list(meter_data.values()))
+    ax1.set_title("Contact Resistance vs Distance")
+    ax1.set_xlabel("Finger")
+    ax1.set_ylabel("Resistance")
+    plt.show()
+    
 def open_input_parameters(selection):
         dialog = customtkinter.CTkInputDialog(text="Type in Value:",
                                           title=selection)
