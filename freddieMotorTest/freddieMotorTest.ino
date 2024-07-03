@@ -15,11 +15,14 @@
 #define stepsVert 400
 #define stepperCalibrateSpeed 500
 #define stepperRunSpeed 600
-#define FOR 1
-#define BAC 0
+#define FOR HIGH
+#define BAC LOW
+#define UP HIGH
+#define DOWN LOW
 
 // Global Variables
 bool homeComplete = false;
+bool parsed = false;
 int initialHoming[2];
 char myData[30] = {0};
 int currFinger;
@@ -45,29 +48,42 @@ void setup() {
 }
 
 void loop() {
-  parseDataStream();
-  
   //resetHoriz(2000);
+  numFingers = 0;
+
   if (!homeComplete){
+  Serial.println("cali start");
   calibrateHome();
   }
-  for(currFinger = 0; currFinger < numFingers; currFinger++){     
-      delay(500);
 
-      stepperRun(stepsHoriz, BAC, stepperRunSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
-      stepperRun(stepsVert, FOR, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
-      stepperRun(stepsVert, BAC, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
-      //Serial.print("Finger: #"); Serial.println(Curr_Finger+1);
-      //Serial.print("Steps"); Serial.println(stepsPerRev);
-      delay(1000);
+  do{
+  parseDataStream();
+  }while(parsed == false);
+
+  do{
+   for(currFinger; currFinger < numFingers; currFinger++){     
+      delay(500);
+      Serial.print(currFinger);
+      if (currFinger == 0){
+        stepperRun(stepsVert, DOWN, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        // Measure Finger 1
+        stepperRun(stepsVert, UP, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        delay(500);
+      }
+      else if (currFinger > 0){
+        stepperRun(stepsHoriz, BAC, stepperRunSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
+        stepperRun(stepsVert, DOWN, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        //Measure Finger n
+        stepperRun(stepsVert, UP, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        delay(500);
+      }
+
       if ((currFinger+1) == numFingers){
         delay(1000);        //Serial.print("Measurements Done");
         exit(0);
-
-
-        
       }
-  }
+}
+} while(parsed == true);
 }
 
 void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirPin) {
@@ -117,6 +133,7 @@ void parseDataStream() {
     Serial.println(numFingers);
     delay(1000);
     Serial.end();
+    parsed = true;
   }
 }
 
@@ -148,7 +165,9 @@ void calibrateHome() {
   // }
 
   //initialHoming[1] = 0;  // Sets initial position for vertical
+  Serial.print("cali done");
   homeComplete = true;   // Completes calibration
+  
 }
 
   
