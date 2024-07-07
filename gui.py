@@ -220,16 +220,14 @@ class App(customtkinter.CTk):
     ## SEND VARIABLES 
     global gap_width
     global num_fingers
-        
-    print("begin loop") 
-        
-        #input("Press Enter to continue...")
-        #print("gap width", gap_width)
-        #print("# of fingers:", num_fingers)
-        #gap_width = gap_width + '\r'
-        #num_fingers = num_fingers + '\r'
-        #serial_inst.write(gap_width.encode('utf-8'))  
-        #serial_inst.write(num_fingers.encode('utf-8'))
+               
+    #input("Press Enter to continue...")
+    #print("gap width", gap_width)
+    #print("# of fingers:", num_fingers)
+    #gap_width = gap_width + '\r'
+    #num_fingers = num_fingers + '\r'
+    #serial_inst.write(gap_width.encode('utf-8'))
+    #serial_inst.write(num_fingers.encode('utf-8'))
       
     variables = gap_width + "," + num_fingers
     variables = variables + '\n'

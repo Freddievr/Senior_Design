@@ -1,11 +1,15 @@
 import pyvisa 
+path = "<C:>\Users\Documents\S24PROBE\CODE"
+def main():
+    get_measurement_keithley_2401()
 
 def get_measurement_keithley_2401():
-    rm = pyvisa.ResourceManager()
-
+    rm = pyvisa.ResourceManager(path)
+    rm.list_resources()
     # Open Connection to Meter
     keithley = rm.open_resource('GPIB0::11::INSTR')
-    
+    print(keithley.query('*IDN?'))
+        
     keithley.write('*RST')
     keithley.write('*CLS')
     
@@ -29,3 +33,6 @@ def get_measurement_keithley_2401():
     keithley.write("trace:clear; feed:control next")
 
     
+if __name__== "__main__":
+    get_measurement_keithley_2401()
+     
