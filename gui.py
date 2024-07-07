@@ -213,21 +213,15 @@ class App(customtkinter.CTk):
     serial_inst.port = port_val
     serial_inst.open()
 
-    global send_button
-    global tf
-    tf = True
-    #send_button = 0   #CHANGE
     # Send Variable Values Button   #FIX
-    #self.send_button = customtkinter.CTkButton(self.sidebar_frame, text= "Send Values", command=self.var_send_button)
-    #self.send_button.grid(row=5, column=0, padx=20, pady=10)
-       
+    # self.send_button = customtkinter.CTkButton(self.sidebar_frame, text= "Send Values", command=self.var_send_button)
+    # self.send_button.grid(row=5, column=0, padx=20, pady=10)
         
     ## SEND VARIABLES 
-    while (tf==True):
-        global gap_width
-        global num_fingers
+    global gap_width
+    global num_fingers
         
-        print("begin loop") 
+    print("begin loop") 
         
         #input("Press Enter to continue...")
         #print("gap width", gap_width)
@@ -236,19 +230,13 @@ class App(customtkinter.CTk):
         #num_fingers = num_fingers + '\r'
         #serial_inst.write(gap_width.encode('utf-8'))  
         #serial_inst.write(num_fingers.encode('utf-8'))
-                
-        if send_button == 1:
-          variables = gap_width + "," + num_fingers
-          variables = variables + '\n'
-          serial_inst.write(variables.encode('utf-8'))
-          time.sleep(1)
-          serial_inst.flush()
-          print("SENT:", variables) 
-          time.sleep(5)
-          tf = False
-          #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
-        else:
-          return None 
+      
+    variables = gap_width + "," + num_fingers
+    variables = variables + '\n'
+    serial_inst.write(variables.encode('utf-8'))
+    serial_inst.flush()
+    print("SENT:", variables) 
+    #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
 
   def UNO_input_dialog(self): 
     val = customtkinter.CTkInputDialog(text="Arduino Command: (ON/OFF): ",
