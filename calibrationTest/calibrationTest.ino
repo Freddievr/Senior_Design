@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <string.h>
 #include <Stream.h>
+#include <TimerOne.h>
 
 // Defined Variables
 #define MAX_MOTOR_SPEED 2000
@@ -19,7 +20,11 @@
 // Global Variables
 bool homeComplete = false;
 int initialHoming[2];
-char myData[30] = {0};
+char myData[30] = { 0 };
+const byte numChars = 32;
+char receivedChars[numChars];
+
+boolean newData = false;
 
 // Forward declare functions
 void parseDataStream();
@@ -27,6 +32,9 @@ void calibrateHome();
 void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirPin);
 
 void setup() {
+  // Setups parsing interrupt
+  Timer1.initialize(150000);
+  Timer1.attachInterrupt(parseDataStream);
   Serial.begin(9600);
 
   // Configure button settings
@@ -48,28 +56,27 @@ until switch is open again. This will be the "initialHoming"
 position
 ================================================================*/
 void calibrateHome() {
-  if (homeComplete){
-    
+  if (homeComplete) {
   }
   // Moves slowly into switch is not active
-  while (digitalRead(HORZ_HOME_SW)) { // Waiting for button press
+  while (digitalRead(HORZ_HOME_SW)) {  // Waiting for button press
     stepperRun(stepsPerRev, BAC, stepperCalibrateSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
     delay(5);
   }
   // Slowly backs off switch until its open
-  while (!digitalRead(HORZ_HOME_SW)) { // Coming off button press
+  while (!digitalRead(HORZ_HOME_SW)) {  // Coming off button press
     stepperRun(stepsPerRev, FOR, stepperCalibrateSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
     delay(5);
   }
   delay(500);
   initialHoming[0] = 0;  // Sets initial position for horizontal
-  
+
   // Begins calibration for vertical
-  while (digitalRead(VERT_HOME_SW)) { // Waiting for button press
+  while (digitalRead(VERT_HOME_SW)) {  // Waiting for button press
     stepperRun(stepsPerRev, BAC, stepperCalibrateSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
     delay(5);
   }
-  while (!digitalRead(VERT_HOME_SW)) { // Coming off button press
+  while (!digitalRead(VERT_HOME_SW)) {  // Coming off button press
     stepperRun(stepsPerRev, FOR, stepperCalibrateSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
     delay(5);
   }
@@ -97,19 +104,52 @@ void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirP
   delay(1000);  // Maybe unnecessary
 }
 
-void parseDataStream() {
-  byte n = Serial.available();
-  if (n != 0) {
-    byte m = Serial.readBytesUntil('\n', myData, 30);
-    myData[m] = '\0';  //null-byte
+// void parseDataStream() {
+//   byte n = Serial.available();
+//   if (n != 0) {
+//     byte m = Serial.readBytesUntil('\n', myData, 30);
+//     myData[m] = '\0';  //null-byte
 
-    float gapWidth = atof(strtok(myData, ","));             // Separates string using "," as delimiter
-    float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
-    int numFingers = atoi(strtok(NULL, ","));             // Converts ASCII number to integer
-    Serial.print(gapWidth);
-    Serial.print(",");
-    Serial.println(calculatedSteps);
-    delay(1000);
-    Serial.end();
+//     float gapWidth = atof(strtok(myData, ","));       // Separates string using "," as delimiter
+//     float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
+//     int numFingers = atoi(strtok(NULL, ","));         // Converts ASCII number to integer
+//     Serial.print(gapWidth);
+//     Serial.print(",");
+//     Serial.println(calculatedSteps);
+//     delay(1000);
+//     Serial.end();
+//   }
+// }
+
+
+void parseDataStream() {
+  static boolean recvInProgress = false;
+  static byte ndx = 0;
+  char startMarker = '<';
+  char endMarker = '>';
+  char recieved;
+
+  while (Serial.available() > 0 && newData == false) {
+    recieved = Serial.read();
+
+    if (recvInProgress == true) {
+      if (recieved != endMarker) {
+        receivedChars[ndx] = recieved;
+        ndx++;
+        if (ndx >= numChars) {
+          ndx = numChars - 1;
+        }
+      } 
+      else {
+        receivedChars[ndx] = '\0';  // terminate the string
+        recvInProgress = false;
+        ndx = 0;
+        newData = true;
+      }
+    }
+
+    else if (recieved == startMarker) {
+      recvInProgress = true;
+    }
   }
 }
