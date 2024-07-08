@@ -16,12 +16,12 @@
 #define MAX_MOTOR_SPEED 2000
 #define CALIBRATE_MOTOR_SPEED 1200
 #define stepsHoriz 100      // Horizontal Calibration Distance 
-#define stepsVert 80        // Vertical Calibration Distance
+#define stepsVert 100        // Vertical Set Calibration & Measurement Movement Distance
 #define calcStepsHoriz 300  // Vertical Calculated Distance
 #define calcStepsVert 700   // Horizontal Calculated Distance (Moving for Testing )
 #define stepperCalibrateSpeed 400
 #define stepperRunSpeed 400
-
+#define stepperRunSpeedHoriz 700
 // Global Variables
 bool homeComplete = false;
 bool parsed = false;
@@ -29,6 +29,7 @@ int initialHoming[2];
 char myData[30] = {0};
 int currFinger;
 int numFingers;
+float calculatedSteps;
 
 // Forward declare functions
 void parseDataStream();
@@ -61,14 +62,14 @@ void loop() {
   do{    
     Serial.println(currFinger+1);
       if (currFinger == 0){
-        stepperRun(calcStepsVert, DOWN, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        stepperRun(calcStepsVert, DOWN, stepperRunSpeedHoriz, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
         delay(100);// Measure Finger 1
         stepperRun(calcStepsVert, UP, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
         currFinger += 1;
       }
       else if (currFinger > 0){
-        stepperRun(calcStepsHoriz, BAC, stepperRunSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
-        stepperRun(calcStepsVert, DOWN, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        stepperRun(calculatedSteps, BAC, stepperRunSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
+        stepperRun(calcStepsVert, DOWN, stepperRunSpeedHoriz, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
         delay(100);//Measure Finger n
         stepperRun(calcStepsVert, UP, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
         currFinger += 1;
@@ -126,7 +127,7 @@ void parseDataStream() {
 
     float gapWidth = atof(strtok(myData, ","));             // Separates string using "," as delimiter
     numFingers = atoi(strtok(NULL, ","));             // Converts ASCII number to integer
-    float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
+    calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
     Serial.print(gapWidth);
     Serial.print(",");
     Serial.println(numFingers);
