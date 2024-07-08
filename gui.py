@@ -220,7 +220,9 @@ class App(customtkinter.CTk):
     ## SEND VARIABLES 
     global gap_width
     global num_fingers
-               
+             
+    variables = "<" + gap_width + "," + num_fingers
+    variables = variables + '\n' + ">"
     #input("Press Enter to continue...")
     #print("gap width", gap_width)
     #print("# of fingers:", num_fingers)
@@ -228,13 +230,13 @@ class App(customtkinter.CTk):
     #num_fingers = num_fingers + '\r'
     #serial_inst.write(gap_width.encode('utf-8'))
     #serial_inst.write(num_fingers.encode('utf-8'))
-      
-    variables = gap_width + "," + num_fingers
-    variables = variables + '\n'
-    serial_inst.write(variables.encode('utf-8'))
-    serial_inst.flush()
-    print("SENT:", variables) 
-    #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
+
+    for i in range(80):
+      serial_inst.write(variables.encode('utf-8'))
+      serial_inst.flush
+      print("SENT:", variables)
+       
+      #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
 
   def UNO_input_dialog(self): 
     val = customtkinter.CTkInputDialog(text="Arduino Command: (ON/OFF): ",
