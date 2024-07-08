@@ -3,23 +3,25 @@
 #include <Stream.h>
 
 // Defined Variables
-#define MAX_MOTOR_SPEED 2000
-#define HORZ_HOME_SW 11
-#define VERT_HOME_SW 10
-#define CALIBRATE_MOTOR_SPEED 1000
-#define PUL_PIN_MOTOR_1 8
-#define DIR_PIN_MOTOR_1 7
-#define PUL_PIN_MOTOR_2 13
-#define DIR_PIN_MOTOR_2 4
-#define stepsHoriz 800
-#define stepsVert 400
-#define stepperCalibrateSpeed 500
-#define stepperRunSpeed 600
 #define FOR HIGH
 #define BAC LOW
 #define UP HIGH
 #define DOWN LOW
-
+#define PUL_PIN_MOTOR_1 8
+#define DIR_PIN_MOTOR_1 7
+#define PUL_PIN_MOTOR_2 13
+#define DIR_PIN_MOTOR_2 4
+#define HORZ_HOME_SW 11
+#define VERT_HOME_SW 10
+#define MAX_MOTOR_SPEED 2000
+#define CALIBRATE_MOTOR_SPEED 1200
+#define stepsHoriz 100      // Horizontal Calibration Distance 
+#define stepsVert 100        // Vertical Set Calibration & Measurement Movement Distance
+#define calcStepsHoriz 300  // Vertical Calculated Distance
+#define calcStepsVert 700   // Horizontal Calculated Distance (Moving for Testing )
+#define stepperCalibrateSpeed 400
+#define stepperRunSpeed 400
+#define stepperRunSpeedHoriz 700
 // Global Variables
 bool homeComplete = false;
 bool parsed = false;
@@ -27,12 +29,12 @@ int initialHoming[2];
 char myData[30] = {0};
 int currFinger;
 int numFingers;
+float calculatedSteps;
 
 // Forward declare functions
 void parseDataStream();
 void calibrateHome();
 void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirPin);
-
 
 void setup() {
  // Configure button settings
@@ -49,41 +51,32 @@ void setup() {
 
 void loop() {
   //resetHoriz(2000);
-  numFingers = 0;
+  resetUno();
+  parseDataStream();
 
   if (!homeComplete){
-  Serial.println("cali start");
+  Serial.println("starting... ");
   calibrateHome();
   }
 
-  do{
-  parseDataStream();
-  }while(!parsed);
-
-  do{
-   for(currFinger; currFinger < numFingers; currFinger++){     
-      delay(500);
-      Serial.print(currFinger);
+  do{    
+    Serial.println(currFinger+1);
       if (currFinger == 0){
-        stepperRun(stepsVert, DOWN, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
-        // Measure Finger 1
-        stepperRun(stepsVert, UP, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
-        delay(500);
+        stepperRun(calcStepsVert, DOWN, stepperRunSpeedHoriz, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        delay(100);// Measure Finger 1
+        stepperRun(calcStepsVert, UP, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        currFinger += 1;
       }
       else if (currFinger > 0){
-        stepperRun(stepsHoriz, BAC, stepperRunSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
-        stepperRun(stepsVert, DOWN, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
-        //Measure Finger n
-        stepperRun(stepsVert, UP, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
-        delay(500);
+        stepperRun(calculatedSteps, BAC, stepperRunSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
+        stepperRun(calcStepsVert, DOWN, stepperRunSpeedHoriz, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        delay(100);//Measure Finger n
+        stepperRun(calcStepsVert, UP, stepperRunSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+        currFinger += 1;
       }
-
-      if ((currFinger+1) == numFingers){
-        delay(1000);        //Serial.print("Measurements Done");
-        exit(0);
-      }
-}
-} while(parsed);
+} while(currFinger < numFingers);
+Serial.println("DONE!");
+resetUno();         // Resets Arduino Parameters 
 }
 
 void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirPin) {
@@ -94,7 +87,6 @@ void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirP
     digitalWrite(pulPin, LOW);        // Output low
     delayMicroseconds(stepperSpeed);  // set rotate speed
   }
-  delay(1000);  // Maybe unnecessary
 }
 
 void resetHoriz(int steps){  
@@ -105,7 +97,6 @@ void resetHoriz(int steps){
     digitalWrite(PUL_PIN_MOTOR_1, LOW);    // Output low
     delayMicroseconds(stepperRunSpeed);    // set rotate speed
   }
-  delay(1000);                      // May be unnecessary
 }
 
 void resetVert(int steps){  
@@ -116,10 +107,19 @@ void resetVert(int steps){
     digitalWrite(PUL_PIN_MOTOR_1, LOW);    // Output low
     delayMicroseconds(stepperRunSpeed);    // set rotate speed
   }
-  delay(1000);                      // May be unnecessary
+}
+
+void resetUno(){           // Resets Parameters for Arduino Uno
+  homeComplete = false;
+  numFingers = 0;
+  currFinger = 0;
+//  calcStepsHoriz = 0;
+//  calcStepsVert = 0;
+  parsed = false;         
 }
 
 void parseDataStream() {
+  do{
   byte n = Serial.available();
   if (n != 0) {
     byte m = Serial.readBytesUntil('\n', myData, 30);
@@ -127,15 +127,16 @@ void parseDataStream() {
 
     float gapWidth = atof(strtok(myData, ","));             // Separates string using "," as delimiter
     numFingers = atoi(strtok(NULL, ","));             // Converts ASCII number to integer
-    float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
+    calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
     Serial.print(gapWidth);
     Serial.print(",");
     Serial.println(numFingers);
-    delay(1000);
-    Serial.end();
+    //Serial.end();
+    Serial.println("parsed!");
     parsed = true;
   }
-  Serial.println("parsing...");
+  Serial.print("parsing... ");
+  }while(!parsed);
 }
 
 void calibrateHome() {
@@ -152,21 +153,20 @@ void calibrateHome() {
     stepperRun(stepsHoriz, BAC, stepperCalibrateSpeed, PUL_PIN_MOTOR_1, DIR_PIN_MOTOR_1);
     delay(5);
   }
-  delay(500);
   initialHoming[0] = 0;  // Sets initial position for horizontal
   
   //Begins calibration for vertical
-  //while (digitalRead(VERT_HOME_SW)) { // Waiting for button press
-  //   stepperRun(stepsVert, BAC, stepperCalibrateSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
-  //  delay(5);
-  //}
-  //while (!digitalRead(VERT_HOME_SW)) { // Coming off button press
-  //  stepperRun(stepsVert, FOR, stepperCalibrateSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
-  //  delay(5);
-  // }
+  while (digitalRead(VERT_HOME_SW)) { // Waiting for button press
+     stepperRun(stepsVert, UP, stepperCalibrateSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+    delay(5);
+  }
+  while (!digitalRead(VERT_HOME_SW)) { // Coming off button press
+    stepperRun(stepsVert, DOWN, stepperCalibrateSpeed, PUL_PIN_MOTOR_2, DIR_PIN_MOTOR_2);
+    delay(5);
+  }
 
-  //initialHoming[1] = 0;  // Sets initial position for vertical
-  Serial.print("cali done");
+  initialHoming[1] = 0;  // Sets initial position for vertical
+  Serial.println("Home");
   homeComplete = true;   // Completes calibration
   
 }
