@@ -10,42 +10,85 @@
 
 #include <AccelStepper.h>
 
-#define vertSW1   10
-#define horiSW2   12
+#define vertSWPin   10
+#define horiSWPin   11
 
 // Define some steppers and the pins the will use
-//AccelStepper stepper1; // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
-//AccelStepper stepper1(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
-//AccelStepper stepper2(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
+AccelStepper stepper1(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
+AccelStepper stepper2(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 
-void setup()
-{  
-    Serial.begin(9600);
-    pinMode(vertSW1, INPUT_PULLUP);
-    //pinMode(horiSW2, INPUT_PULLUP);
-    // stepper1.setMaxSpeed(2000);
-    // stepper1.setAcceleration(1000);
-    // stepper1.moveTo(4000);
+void setup() {  
+  Serial.begin(9600);
+  pinMode(vertSWPin, INPUT_PULLUP);
+  pinMode(horiSWPin, INPUT_PULLUP);
+  stepper1.setMaxSpeed(2000);
+  stepper1.setAcceleration(1000);
+  stepper1.moveTo(4000);
 
-    // stepper2.setMaxSpeed(1000);
-    // stepper2.setAcceleration(800);
-    // stepper2.moveTo(350);
+  stepper2.setMaxSpeed(1000);
+  stepper2.setAcceleration(800);
+  stepper2.moveTo(800);
 }
 
-void loop()
-{
-    int sensorVal1 = digitalRead(vertSW1);
-    //int sensorVal2 = digitalRead(horiSW2);
-    Serial.print("Vertical = ");
-    Serial.println(sensorVal1);
-    //Serial.print("\t");
-    //Serial.print("Sw2 = ");
-    //Serial.println(sensorVal2);
-    delay(1);
-    // Change direction at the limits
-    // if (stepper1.distanceToGo() == 0) stepper1.moveTo(-stepper1.currentPosition());
-    // if (stepper2.distanceToGo() == 0) stepper2.moveTo(-stepper2.currentPosition());
-    // stepper1.run();
-    // stepper2.run();
+void loop() {
+
+  // Change direction at the limits
+  while (failSafe(1) == 0 && failSafe(2) == 0) {
+    if (stepper1.distanceToGo() == 0) stepper1.moveTo(-stepper1.currentPosition());
+    if (stepper2.distanceToGo() == 0) stepper2.moveTo(-stepper2.currentPosition());
+    stepper1.run();
+    stepper2.run();
+    //Serial.println("here");
+  }
+  // while(1) { 
+  //   stepper1.setMaxSpeed(0);
+  //   stepper2.setMaxSpeed(0);
+  // }  
+  while(1){
+    stepper1.setMaxSpeed(1000);
+    stepper1.setAcceleration(800);
+    stepper1.moveTo(0);
+    stepper2.setMaxSpeed(1000);
+    stepper2.setAcceleration(800);
+    stepper2.moveTo(0);
+  }
+  
+  
+  // if (failSafe(1) == 0 || failSafe(2) == 0) {
+  //   if (stepper1.distanceToGo() == 0) stepper1.moveTo(-stepper1.currentPosition());
+  //   if (stepper2.distanceToGo() == 0) stepper2.moveTo(-stepper2.currentPosition());
+  //   stepper1.run();
+  //   stepper2.run();
+  //   //Serial.println("here");
+  // }
+  // // while(1) { 
+  // //   stepper1.setMaxSpeed(0);
+  // //   stepper2.setMaxSpeed(0);
+  // // }  
+  // while (failSafe(1) == 1 || failSafe(2) == 1) {
+  //   stepper1.setMaxSpeed(1000);
+  //   stepper1.setAcceleration(800);
+  //   stepper1.moveTo(0);
+  //   stepper2.setMaxSpeed(1000);
+  //   stepper2.setAcceleration(800);
+  //   stepper2.moveTo(0);
+  // }
+}
+
+
+
+int failSafe(int switchNum) {
+  //delay(1);
+  int sensorVal1 = digitalRead(vertSWPin);
+  int sensorVal2 = digitalRead(horiSWPin);
+
+  // Serial.print("Vertical = ");
+  // Serial.print(sensorVal1);
+  // Serial.print("\t");
+  // Serial.print("Horizontal = ");
+  // Serial.println(sensorVal2);
+
+  if(switchNum == 1) return sensorVal1;
+  if(switchNum == 2) return sensorVal2;
 
 }

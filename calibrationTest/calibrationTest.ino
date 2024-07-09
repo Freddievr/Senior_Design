@@ -104,52 +104,55 @@ void stepperRun(int steps, int direction, int stepperSpeed, int pulPin, int dirP
   delay(1000);  // Maybe unnecessary
 }
 
-// void parseDataStream() {
-//   byte n = Serial.available();
-//   if (n != 0) {
-//     byte m = Serial.readBytesUntil('\n', myData, 30);
-//     myData[m] = '\0';  //null-byte
-
-//     float gapWidth = atof(strtok(myData, ","));       // Separates string using "," as delimiter
-//     float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
-//     int numFingers = atoi(strtok(NULL, ","));         // Converts ASCII number to integer
-//     Serial.print(gapWidth);
-//     Serial.print(",");
-//     Serial.println(calculatedSteps);
-//     delay(1000);
-//     Serial.end();
-//   }
-// }
-
-
 void parseDataStream() {
-  static boolean recvInProgress = false;
-  static byte ndx = 0;
+  byte n = Serial.available();
   char startMarker = '<';
   char endMarker = '>';
-  char recieved;
 
-  while (Serial.available() > 0 && newData == false) {
-    recieved = Serial.read();
+  while (n != 0 && n == startMarker) {
+    byte m = Serial.readBytesUntil('\n', myData, 30);
+    myData[m] = '\0';  //null-byte
 
-    if (recvInProgress == true) {
-      if (recieved != endMarker) {
-        receivedChars[ndx] = recieved;
-        ndx++;
-        if (ndx >= numChars) {
-          ndx = numChars - 1;
-        }
-      } 
-      else {
-        receivedChars[ndx] = '\0';  // terminate the string
-        recvInProgress = false;
-        ndx = 0;
-        newData = true;
-      }
-    }
-
-    else if (recieved == startMarker) {
-      recvInProgress = true;
-    }
+    float gapWidth = atof(strtok(myData, ","));       // Separates string using "," as delimiter
+    float calculatedSteps = (gapWidth / 5.0) * 1600;  // Calculates steps to move a certain distance
+    int numFingers = atoi(strtok(NULL, ","));         // Converts ASCII number to integer
+    Serial.print(gapWidth);
+    Serial.print(",");
+    Serial.println(calculatedSteps);
+    delay(1000);
+    Serial.end();
   }
 }
+
+
+// void parseDataStream() {
+//   static boolean recvInProgress = false;
+//   static byte ndx = 0;
+//   char startMarker = '<';
+//   char endMarker = '>';
+//   char recieved;
+
+//   while (Serial.available() > 0 && newData == false) {
+//     recieved = Serial.read();
+
+//     if (recvInProgress == true) {
+//       if (recieved != endMarker) {
+//         receivedChars[ndx] = recieved;
+//         ndx++;
+//         if (ndx >= numChars) {
+//           ndx = numChars - 1;
+//         }
+//       } 
+//       else {
+//         receivedChars[ndx] = '\0';  // terminate the string
+//         recvInProgress = false;
+//         ndx = 0;
+//         newData = true;
+//       }
+//     }
+
+//     else if (recieved == startMarker) {
+//       recvInProgress = true;
+//     }
+//   }
+// }
