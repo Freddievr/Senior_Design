@@ -14,58 +14,61 @@
 #define horiSWPin   11
 
 // Define some steppers and the pins the will use
-AccelStepper stepper1(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
-AccelStepper stepper2(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
+AccelStepper stepper_h(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
+AccelStepper stepper_v(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 
 void setup() {  
   Serial.begin(9600);
   pinMode(vertSWPin, INPUT_PULLUP);
   pinMode(horiSWPin, INPUT_PULLUP);
-  stepper1.setMaxSpeed(2000);
-  stepper1.setAcceleration(1000);
-  stepper1.moveTo(4000);
+  stepper_h.setMaxSpeed(2000);
+  stepper_h.setAcceleration(1000);
+  // stepper1.setMaxSpeed(2000);
+  // stepper1.setAcceleration(1000);
+  // stepper1.moveTo(4000);
 
-  stepper2.setMaxSpeed(1000);
-  stepper2.setAcceleration(800);
-  stepper2.moveTo(800);
+  // stepper2.setMaxSpeed(1000);
+  // stepper2.setAcceleration(800);
+  // stepper2.moveTo(800);
 }
 
 void loop() {
-
+  String command;
   // Change direction at the limits
-  while (failSafe(1) == 0 && failSafe(2) == 0) {
-    if (stepper1.distanceToGo() == 0) stepper1.moveTo(-stepper1.currentPosition());
-    if (stepper2.distanceToGo() == 0) stepper2.moveTo(-stepper2.currentPosition());
-    stepper1.run();
-    stepper2.run();
-    //Serial.println("here");
+  if (Serial.available() > 0) {
+    command = Serial.readStringUntil("\n");
   }
-  // while(1) { 
-  //   stepper1.setMaxSpeed(0);
-  //   stepper2.setMaxSpeed(0);
-  // }  
-  while(1){
-    stepper1.setMaxSpeed(1000);
-    stepper1.setAcceleration(800);
-    stepper1.moveTo(0);
-    stepper2.setMaxSpeed(1000);
-    stepper2.setAcceleration(800);
-    stepper2.moveTo(0);
+  //Serial.println(command);
+  if (command == "f") {
+    Serial.println("forw");
+    stepper_h.setSpeed(800);	
+    stepper_h.runSpeed();
   }
-  
-  
-  // if (failSafe(1) == 0 || failSafe(2) == 0) {
+
+  if (command == "b") {
+    Serial.println("back");
+    stepper_h.setSpeed(800);	
+    stepper_h.runSpeed();
+  }
+  delay(100);
+  //Serial.println(command);
+  //delay(10);
+  //stepper1.moveTo(400);
+  //stepper1.run();
+  // while (stepper1.distanceToGo() == 0) {
+  //   stepper1.setMaxSpeed(1000);
+  //   stepper1.moveTo(0);
+  //   stepper2.moveTo(0);
+  // }
+  // while (failSafe(1) == 0 && failSafe(2) == 0) {
   //   if (stepper1.distanceToGo() == 0) stepper1.moveTo(-stepper1.currentPosition());
   //   if (stepper2.distanceToGo() == 0) stepper2.moveTo(-stepper2.currentPosition());
   //   stepper1.run();
   //   stepper2.run();
   //   //Serial.println("here");
   // }
-  // // while(1) { 
-  // //   stepper1.setMaxSpeed(0);
-  // //   stepper2.setMaxSpeed(0);
-  // // }  
-  // while (failSafe(1) == 1 || failSafe(2) == 1) {
+
+  // while(1){
   //   stepper1.setMaxSpeed(1000);
   //   stepper1.setAcceleration(800);
   //   stepper1.moveTo(0);
@@ -74,8 +77,6 @@ void loop() {
   //   stepper2.moveTo(0);
   // }
 }
-
-
 
 int failSafe(int switchNum) {
   //delay(1);
