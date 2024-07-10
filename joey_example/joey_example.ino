@@ -12,8 +12,9 @@
 
 #define vertSWPin   10
 #define horiSWPin   11
+// char command;
 
-// Define some steppers and the pins the will use
+// Define some steppers and the pins they will use
 AccelStepper stepper_h(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
 AccelStepper stepper_v(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 
@@ -33,10 +34,10 @@ void setup() {
 }
 
 void loop() {
-  String command;
+  char command;
   // Change direction at the limits
   if (Serial.available() > 0) {
-    command = Serial.readStringUntil("\n");
+    command = Serial.read();
   }
   //Serial.println(command);
   if (command == "f") {
