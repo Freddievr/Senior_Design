@@ -12,17 +12,26 @@
 
 #define vertSWPin   10
 #define horiSWPin   11
+#define stepperSpeed 1000
 
+String command;
+int distance = 1500;
+int initialPosition = 0;
 // Define some steppers and the pins the will use
-AccelStepper stepper_h(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
-AccelStepper stepper_v(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
+AccelStepper stepperH(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
+AccelStepper stepperV(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 
 void setup() {  
   Serial.begin(9600);
   pinMode(vertSWPin, INPUT_PULLUP);
   pinMode(horiSWPin, INPUT_PULLUP);
-  stepper_h.setMaxSpeed(2000);
-  stepper_h.setAcceleration(1000);
+  stepperH.setMaxSpeed(4000);
+  stepperH.setAcceleration(1000);
+  stepperH.setSpeed(2000);	
+
+  stepperV.setMaxSpeed(2000);
+  stepperV.setAcceleration(1000);
+  stepperV.setSpeed(1000);
   // stepper1.setMaxSpeed(2000);
   // stepper1.setAcceleration(1000);
   // stepper1.moveTo(4000);
@@ -30,28 +39,66 @@ void setup() {
   // stepper2.setMaxSpeed(1000);
   // stepper2.setAcceleration(800);
   // stepper2.moveTo(800);
+  stepperH.setCurrentPosition(0);
+  stepperV.setCurrentPosition(0);
 }
 
 void loop() {
-  char command;
+  stepperH.moveTo(100);
+  stepperH.run();
+  
   // Change direction at the limits
+  // Serial.print("Status: ");
+  // Serial.println(Serial.available());
   if (Serial.available() > 0) {
-    command = Serial.read();
+    command = Serial.readStringUntil('\n');
+    // Serial.println("Moved into if");
   }
-  //Serial.println(command);
   if (command == "f") {
-    Serial.println("forw");
-    stepper_h.setSpeed(800);	
-    stepper_h.runSpeed();
+    // Serial.println(initialPosition);
+    // Serial.println("forw");
+  //   stepperH.setSpeed(stepperSpeed);	
+  //   // stepperH.runSpeed();
+    stepperH.moveTo(distance);
+  //   // initialPosition++;
+    stepperH.run();
+    stepperV.moveTo(distance);
+    stepperV.run();
   }
 
   if (command == "b") {
-    Serial.println("back");
-    stepper_h.setSpeed(900);	
-    stepper_h.runSpeed();
+    // Serial.println(command);
+    // Serial.println("back");
+    // stepperH.setSpeed(stepperSpeed);	
+    // stepperH.runSpeed();
+    // while(stepperH.distanceToGo() != 0) {
+      stepperH.moveTo(-distance);
+      // // initialPosition--;
+      stepperH.run();
+
+      stepperV.moveTo(-distance);
+      stepperV.run();
+    // }
   }
-  delay(10);
-  //Serial.println(command);
+
+  if (command == "s") {
+    // Serial.println(command);
+    // Serial.println("back");
+    // stepperH.setSpeed(stepperSpeed);
+    // stepperH.runSpeed();
+    stepperH.moveTo(0);
+    stepperH.run();
+    stepperV.moveTo(0);
+    stepperV.run();
+  }
+
+
+  // while (stepperH.distanceToGo() == 0) {
+  //   stepperH.setMaxSpeed(1000);
+  //   stepperH.moveTo(0);
+  // }
+  // delay(5);
+  // Serial.println(command);
   //delay(10);
   //stepper1.moveTo(400);
   //stepper1.run();

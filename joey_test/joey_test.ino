@@ -26,10 +26,10 @@ void setup() {
   pinMode(horiSWPin, INPUT_PULLUP);
   stepper_h.setMaxSpeed(2000);
   stepper_h.setAcceleration(1000);
-  stepper_h.moveTo(4000);
+  stepper_h.moveTo(numSteps);
 
-  stepper_v.setMaxSpeed(1000);
-  stepper_v.setAcceleration(800);
+  stepper_v.setMaxSpeed(2000);
+  stepper_v.setAcceleration(1000);
   stepper_v.moveTo(numSteps);
 }
 
@@ -41,4 +41,10 @@ void loop() {
   }
   stepper_v.moveTo(numSteps);
   //delay(2000);
+
+   stepper_h.run();
+  if (stepper_h.distanceToGo() == 0) {
+    numSteps += increment;
+  }
+  stepper_h.moveTo(numSteps);
 }
