@@ -12,9 +12,8 @@
 
 #define vertSWPin   10
 #define horiSWPin   11
-// char command;
 
-// Define some steppers and the pins they will use
+// Define some steppers and the pins the will use
 AccelStepper stepper_h(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
 AccelStepper stepper_v(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 
@@ -48,10 +47,10 @@ void loop() {
 
   if (command == "b") {
     Serial.println("back");
-    stepper_h.setSpeed(800);	
+    stepper_h.setSpeed(900);	
     stepper_h.runSpeed();
   }
-  delay(100);
+  delay(10);
   //Serial.println(command);
   //delay(10);
   //stepper1.moveTo(400);

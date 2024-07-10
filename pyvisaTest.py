@@ -1,4 +1,6 @@
 import pyvisa
+import pandas as pd
+import numpy as np
 
 def main():
     get_measurement_keithley_2401()
@@ -16,14 +18,14 @@ def get_measurement_keithley_2401():
     keithley.write('*RST')                  
     keithley.write('*CLS')
     # Setup Meter 
-    interval_in_ms = 500
-    number_of_readings = 10
-    
+    num_fingers = 6
+    numReadings = str(num_fingers*2)
+    rowName = "Finger"
     keithley.write(":SOUR:FUNC:MODE CURR")             # Select current source 
     # setup current sweep mode & points
     keithley.write(":SOUR:CURR:MODE LIST")
     keithley.write(":SOUR:LIST:CURR -0.020,0.020")     # Sweep points -20mA,20mA
-    keithley.write(":SOUR:SWE:POIN 2")
+    keithley.write(":SOUR:SWE:POIN " + numReadings)
     keithley.write(":SOUR:SWE:DIR UP")
     # turn off concurrent functions
     keithley.write(":SENSE:FUNC:CONC OFF")
@@ -39,25 +41,52 @@ def get_measurement_keithley_2401():
     keithley.write(":SYSTEM:AZERO:STAT OFF")
     # ??? clear trace buffer?
     keithley.write(":TRAC:CLE")
+    
     # store n readings in buffer
-    keithley.write(":TRAC:POINTS 2")
+    keithley.write(":TRAC:POINTS " + numReadings)
     # set ARM count n=1
-    keithley.write(":ARM:COUN 2")
+    keithley.write(":ARM:COUN " + numReadings)
     # enable buffer for trace?
     keithley.write(":TRAC:FEED:CONT NEXT")
-    
     # of sweep points n
-    keithley.write("TRIG:COUN 1")
+    keithley.write("TRIG:COUN " + numReadings)
+    
     # turn on output
     keithley.write(":OUTPUT ON")
     # trigger readings
     keithley.write(":INIT")
 
-    voltages = keithley.query_ascii_values("trace:data?")
-    print(voltages)
-    print("Average voltage: ", sum(voltages) / len(voltages))
+    inputs = keithley.query_ascii_values("trace:data?")
+  
+    values = np.array(inputs)
+    soa = np.size(values)
+    values = values.reshape(-1, 10)
+    #print(values)
+
+    col = ['Voltage-','Current-','Resistance1','Time1','Status1', 'Voltage+','Current+','Resistance2','Time2','Status2']
+   
+    df = pd.DataFrame(values,columns=col)
+    df.drop(columns = ['Resistance1','Time1','Status1','Resistance2','Time2','Status2'], inplace = True)   
+    row_array = []
+    for i in range(0, num_fingers, 1) :
+        row_array.append("Finger_" + str(i+1))
+    df.index = row_array   
+    print(df)
+    
+    
+    
+    
+    
+    
+    
+    
+    ###########################################################################
+    
+    # average_voltage = sum(voltages) / len(voltages)
+    # print("Average voltage: ", average_voltage)
     
 
+    
     #print(keithley.query(":SOUR:LIST:COUN?"))     # Sweep points -20mA,20mA
     # turn off output
     #keithley.write(":OUTPUT OFF")
@@ -74,23 +103,8 @@ def get_measurement_keithley_2401():
     # keithley.write(":OUTPUT ON")
     # # trigger readings
     # keithley.write(":INIT")
-   
-   
-    #keithley.write("status:measurement:enable 512; *SRE 1") 
-    #keithley.write("sample:count %d" %number_of_readings)
-    #keithley.write("trigger:source bus")
-    #keithley.write("trigger:delay %f" % (interval_in_ms / 1000.0))
-    #keithley.write("trace:points %d" % number_of_readings)
-   # keithley.write("trace:feed sense1; feed:control next")
-'''
+ 
 
-    voltages = keithley.query_ascii_values("trace:data?")
-    print("Average voltage: ", sum(voltages) / len(voltages))
-
-    keithley.query("status:measurement?")
-    keithley.write("trace:clear; feed:control next") 
-'''
-    
 if __name__== "__main__":
     get_measurement_keithley_2401()
      

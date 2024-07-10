@@ -9,7 +9,6 @@ import serial.tools.list_ports
 import time
 from data import meter_data
 
-
 customtkinter.set_appearance_mode(
     "Light")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme(
