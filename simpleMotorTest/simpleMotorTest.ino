@@ -1,26 +1,58 @@
-int x;
-int motorDistance = 4000;
-int motorSpeed = 300;
+#define pulPinMotor1 8
+#define dirPinMotor1 7
+#define pulPinMotor2 13
+#define dirPinMotor2 4
+#define stepsPerRev 800
+#define stepperSpeed 500
+#define FOR 1
+#define BAC 0
+float Gap_Width;
+float Num_Fingers;
+
+void stepperRun(int steps, int direction, int pulPin, int dirPin);
+
 void setup() {
-  pinMode(9, OUTPUT);  // set Pin9 as PUL
-  pinMode(8, OUTPUT);  // set Pin8 as DIR
+  pinMode(pulPinMotor1, OUTPUT);    // set pin as PUL
+  pinMode(dirPinMotor1, OUTPUT);    // set pin as DIR
+  pinMode(pulPinMotor2, OUTPUT);    // set pin as PUL
+  pinMode(dirPinMotor2, OUTPUT);    // set pin as DIR
+  Serial.begin(9600);
+
 }
 void loop() {
-  digitalWrite(8, HIGH);     // set high level direction
-  for (x = 0; x < motorDistance; x++)  // repeat 400 times a revolution when setting 400 on driver
+  if (!Serial.available()){
+  //Do Nothing
+  return;
+  }
+  if (Serial.available()){
+
+  Gap_Width = Serial.parseFloat();
+  Num_Fingers = Serial.parseFloat();
+  
+  Serial.println(Gap_Width);
+  Serial.println(Num_Fingers);
+
+  //delay(1000);
+    for(float i = 0; i < Num_Fingers; i++){   
+      delay(1000);
+      stepperRun(stepsPerRev, BAC, pulPinMotor1, dirPinMotor1);
+      stepperRun(stepsPerRev, FOR, pulPinMotor1, dirPinMotor1);
+      stepperRun(stepsPerRev, BAC, pulPinMotor2, dirPinMotor2);
+      stepperRun(stepsPerRev, FOR, pulPinMotor2, dirPinMotor2);
+  }
+
+    
+  }
+}
+
+void stepperRun(int steps, int direction, int pulPin, int dirPin){  
+  digitalWrite(dirPin, direction);  // set direction level
+  for (int x = 0; x < steps; x++)   // repeat "steps" times a revolution
   {
-    digitalWrite(9, HIGH);   // Output high
-    delayMicroseconds(motorSpeed);  // set rotate speed
-    digitalWrite(9, LOW);    // Output low
-    delayMicroseconds(motorSpeed);  // set rotate speed
+    digitalWrite(pulPin, HIGH);     // Output high
+    delayMicroseconds(stepperSpeed);// set rotate speed
+    digitalWrite(pulPin, LOW);      // Output low
+    delayMicroseconds(stepperSpeed);// set rotate speed
   }
-  delay(1000);           //pause 1 second
-  digitalWrite(8, LOW);  // set high level direction
-  for (x = 0; x < motorDistance; x++) {
-    digitalWrite(9, HIGH);
-    delayMicroseconds(motorSpeed);
-    digitalWrite(9, LOW);
-    delayMicroseconds(motorSpeed);
-  }
-  delay(1000);
+  delay(1000);                      // May be unnecessary
 }
