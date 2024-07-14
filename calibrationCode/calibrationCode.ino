@@ -15,7 +15,7 @@ AccelStepper stepperZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 #define xRS 10  // Pin 12 connected to Home Switch (MicroSwitch)
 #define xLS 11
 #define zTS 12  // Pin 12 connected to Home Switch (MicroSwitch)
-#define zBS 1
+#define zBS 13
 #define maxSpd 2000
 #define normSpd 1500
 #define acclSpd 1000
@@ -23,7 +23,7 @@ AccelStepper stepperZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 #define MM_PER_STEP 0.003125
 
 void setup() {
-
+  Serial.begin(9600);
   pinMode(xRS, INPUT_PULLUP);
   pinMode(xLS, INPUT_PULLUP);
   pinMode(zBS, INPUT_PULLUP);
@@ -44,39 +44,39 @@ void loop() {
   // zTestHoming();
 }
 
-void xTestHoming(){
+void xTestHoming() {
   // Start Homing procedure of Stepper Motor at startup
   while (digitalRead(xRS) == 0) {  // Make the Stepper move CW until the switch is activated
-    stepperX.move(1600);                   // Set the position to move to
+    stepperX.move(1600);           // Set the position to move to
+    stepperX.runSpeed();           // Start moving the stepper
+  }
+  Serial.println(stepperX.currentPosition());
+  stepperX.setCurrentPosition(0);
+  stepperX.runToNewPosition(-800);
+
+  // Start Homing procedure of Stepper Motor at startup
+  while (digitalRead(xLS) == 0) {  // Make the Stepper move CW until the switch is activated
+    stepperX.move(-1600);                   // Set the position to move to
     stepperX.runSpeed();                   // Start moving the stepper
   }
-  int distanceTraveled = stepperX.CurrentPosition();
   stepperX.setCurrentPosition(0);
-  // // stepperX.runToNewPosition(-2000);
-
-  // Start Homing procedure of Stepper Motor at startup
-  // while (digitalRead(xLS) == 0) {  // Make the Stepper move CW until the switch is activated
-  //   stepperX.move(-1600);                   // Set the position to move to
-  //   stepperX.runSpeed();                   // Start moving the stepper
-  // }
-  // stepperX.setCurrentPosition(0);
-  // stepperX.runToNewPosition(2000);
+  stepperX.runToNewPosition(800);
 }
 
-void zTestHoming(){
+void zTestHoming() {
   // Start Homing procedure of Stepper Motor at startup
   while (digitalRead(zTS) == 0) {  // Make the Stepper move CW until the switch is activated
-    stepperZ.move(-1600);                   // Set the position to move to
-    stepperZ.runSpeed();                   // Start moving the stepper
+    stepperZ.move(-1600);          // Set the position to move to
+    stepperZ.runSpeed();           // Start moving the stepper
   }
   stepperZ.setCurrentPosition(0);
-  stepperZ.runToNewPosition(1600);
+  stepperZ.runToNewPosition(800);
 
   // Start Homing procedure of Stepper Motor at startup
   while (digitalRead(zBS) == 0) {  // Make the Stepper move CW until the switch is activated
-    stepperZ.move(1600);                   // Set the position to move to
-    stepperZ.runSpeed();                   // Start moving the stepper
+    stepperZ.move(1600);           // Set the position to move to
+    stepperZ.runSpeed();           // Start moving the stepper
   }
   stepperZ.setCurrentPosition(0);
-  // stepperZ.runToNewPosition(1600);
+  stepperZ.runToNewPosition(-800);
 }

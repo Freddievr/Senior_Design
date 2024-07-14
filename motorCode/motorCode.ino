@@ -1,120 +1,57 @@
-#include <Arduino.h>
-#include <AccelStepper.h>
-#include <MultiStepper.h>
-#include <string.h>
-#include <Stream.h>
+#include "AccelStepper.h"
 
-// Defined Variables
-#define MAX_MOTOR_SPEED 100
-#define HORZ_HOME_SW 11
-#define VERT_HOME_SW 10
-#define CALIBRATE_MOTOR_SPEED 1000.0
+// AccelStepper Setup
+AccelStepper stepperX(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
+AccelStepper stepperZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
+// Define the Pins used
+#define xRS 10                // Pin number of right limit switch
+#define xLS 11                // Pin number of left limit switch
+#define zTS 12                // Pin number of top limit switch
+#define zBS 13                // Pin number of bottom limit switch
+#define maxSpd 2000           // Max spped
+#define normSpd 1500          // Normal run speed
+#define acclSpd 1000          // Max acceleration speed
+#define STEP_PER_MM 320       // Step for 1mm movement
+#define MM_PER_STEP 0.003125  // mm movement for 1 step
 
-// Global Variables
-String streamData;
-String parsedData;
-bool homeComplete = false;
-long initialHoming = 400;
-
-// Initialize Stepper motors
-// Function nomenclature motorName
-AccelStepper stepperH(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
-AccelStepper stepperV(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
-
-// Creates a group for steppers motors to be added
-MultiStepper steppers;
-// MultiStepper steppers;
-
-// Forward declare functions
-// String parseDataStream();
+// Forward declaration
 void calibrateHome();
+
 
 void setup() {
   Serial.begin(9600);
+  // Initialized pinmodes for buttons
+  pinMode(xRS, INPUT_PULLUP);
+  pinMode(xLS, INPUT_PULLUP);
+  pinMode(zBS, INPUT_PULLUP);
+  pinMode(zTS, INPUT_PULLUP);
 
-  // Configure each stepper # steps per second
-  stepperH.setMaxSpeed(MAX_MOTOR_SPEED);
-  stepperV.setMaxSpeed(MAX_MOTOR_SPEED);
-
-  // Add them to MultiStepper group to manage
-  // steppers.addStepper(stepperH);
-  // steppers.addStepper(stepperV);
-
-  // Configure button settings
-  pinMode(HORZ_HOME_SW, INPUT_PULLUP);
-  pinMode(VERT_HOME_SW, INPUT_PULLUP);
-  stepperH.setCurrentPosition(0);
-  stepperV.setCurrentPosition(0);
+  //  Set Max Speed and Acceleration of each Steppers at startup for homing
+  stepperX.setMaxSpeed(maxSpd);       // Set Max Speed of Stepper (Slower to get better accuracy)
+  stepperX.setAcceleration(acclSpd);  // Set Acceleration of Stepper
+  stepperX.setSpeed(normSpd);
+  stepperZ.setMaxSpeed(maxSpd);       // Set Max Speed of Stepper (Slower to get better accuracy)
+  stepperZ.setAcceleration(acclSpd);  // Set Acceleration of Stepper
+  stepperZ.setSpeed(normSpd);
 }
 
 void loop() {
-  // calibrateHome();
-  // stepperH.setCurrentPosition(0);
-  stepperH.moveTo(initialHoming);
-  // stepperH.setMaxSpeed(CALIBRATE_MOTOR_SPEED);
-  stepperH.setSpeed(CALIBRATE_MOTOR_SPEED);
-  // stepperH.setAcceleration(CALIBRATE_MOTOR_SPEED);
-  // stepperH.move(initialHoming);
-  // initialHoming -= 50;
-  stepperH.run();
-  delay(5);
 
-  /*=======================*/
-  // Vert moves down
-  // Vert moves up
-  // Horiz moves forward
+  stepperX.run();
 }
 
-void calibrateHome(){
+void calibrateHome() {
 
-  // While switch is open move horiz towards switch
-  // Slowly move off of switch until open after switch is closed
-  // Set initial position
-  // REPEAT FOR VERT
-
-  while (digitalRead(HORZ_HOME_SW)){
-    stepperH.setMaxSpeed(CALIBRATE_MOTOR_SPEED);
-    stepperH.setSpeed(CALIBRATE_MOTOR_SPEED);
-    stepperH.move(initialHoming);
-    initialHoming -= 50;
-    stepperH.run();
-    delay(5);
-  }
-
-  stepperH.setCurrentPosition(0);
-  stepperH.setMaxSpeed(CALIBRATE_MOTOR_SPEED);
-  // stepperH.setAcceleration(CALIBRATE_MOTOR_SPEED);
-  initialHoming = 1;
-  
-  while (!digitalRead(HORZ_HOME_SW)){
-    stepperH.moveTo(initialHoming);
-    initialHoming++;
-    stepperH.run();
-    delay(5);
-  }
-  stepperH.setCurrentPosition(0);
-  
-  // initialHoming = -1;
-  // while (digitalRead(VERT_HOME_SW)){
-  //   stepperV.setSpeed(CALIBRATE_MOTOR_SPEED);
-  //   stepperV.moveTo(initialHoming);
-  //   initialHoming--;
-  //   stepperV.run();
-  //   delay(5);
-  // }
-
-  // stepperV.setCurrentPosition(0);
-  // stepperV.setSpeed(CALIBRATE_MOTOR_SPEED);
-  // stepperV.setAcceleration(CALIBRATE_MOTOR_SPEED);
-  // initialHoming = 1;
-  
-  // while (!digitalRead(VERT_HOME_SW)){
-  //   stepperV.moveTo(initialHoming);
-  //   initialHoming++;
-  //   stepperV.run();
-  //   delay(5);
-  // }
-  // stepperV.setCurrentPosition(0);
+  // Move vertical motor to top limit switch
+  // Set zero position on top limit switch
+  // Move horizontal motor to right limit switch
+  // Set right limit switch as zero position on horizontal switch
+  // Move horizontal to left limit switch
+  // Save current position of horizontal motor as max range
+  // Move to zero position
+  // Move vertical down to bottom limit switch
+  // Save current position of vertical motor
+  // Move to zero position
 }
 
 // String parseDataStream(){
