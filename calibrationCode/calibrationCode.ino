@@ -40,8 +40,8 @@ void setup() {
 
 
 void loop() {
-  xTestHoming();
-  // zTestHoming();
+  // xTestHoming();
+  zTestHoming();
 }
 
 void xTestHoming() {
@@ -50,7 +50,7 @@ void xTestHoming() {
     stepperX.move(1600);           // Set the position to move to
     stepperX.runSpeed();           // Start moving the stepper
   }
-  Serial.println(stepperX.currentPosition());
+  // Serial.println(stepperX.currentPosition());
   stepperX.setCurrentPosition(0);
   stepperX.runToNewPosition(-800);
 
@@ -65,7 +65,7 @@ void xTestHoming() {
 
 void zTestHoming() {
   // Start Homing procedure of Stepper Motor at startup
-  while (digitalRead(zTS) == 0) {  // Make the Stepper move CW until the switch is activated
+  while (digitalRead(zTS) == 1) {  // Make the Stepper move CW until the switch is activated
     stepperZ.move(-1600);          // Set the position to move to
     stepperZ.runSpeed();           // Start moving the stepper
   }
@@ -73,7 +73,7 @@ void zTestHoming() {
   stepperZ.runToNewPosition(800);
 
   // Start Homing procedure of Stepper Motor at startup
-  while (digitalRead(zBS) == 0) {  // Make the Stepper move CW until the switch is activated
+  while (digitalRead(zBS) == 1) {  // Make the Stepper move CW until the switch is activated
     stepperZ.move(1600);           // Set the position to move to
     stepperZ.runSpeed();           // Start moving the stepper
   }
