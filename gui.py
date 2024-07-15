@@ -7,12 +7,11 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import serial.tools.list_ports
 import time
-from data import meter_data
+from pyvisaTest import get_measurement_keithley_2401
 
 customtkinter.set_appearance_mode(
-    "Light")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme(
-    "blue")  # Themes: "blue" (standard), "green", "dark-blue"
+    "System")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_default_color_theme("uncc.json") 
 
 class App(customtkinter.CTk):
 
@@ -63,7 +62,7 @@ class App(customtkinter.CTk):
     self.Open_graph_button.grid(row=4, column = 0, padx=20, pady=10)
 
     # configure tab view and locate in grid
-    self.tabview = customtkinter.CTkTabview(self, width=150)
+    self.tabview = customtkinter.CTkTabview(self, width=150,segmented_button_selected_hover_color="#A49665", border_color= "#A49665")
     self.tabview.grid(row=0,
                       column=1,
                       padx=(30, 30),
@@ -111,7 +110,7 @@ class App(customtkinter.CTk):
                               sticky="n")
 
     self.start_button = customtkinter.CTkButton(
-      master=self.button_frame, command=self.button_start, fg_color="green", text="Start", width = 150)
+      master=self.button_frame, command=self.button_start, fg_color="green", text="Start", width = 150, hover_color= "#228B22")
     self.start_button.grid(row=1, column=2, pady=20, padx=20, sticky="n")
     self.resume_button = customtkinter.CTkButton(
       master=self.button_frame, command=self.button_resume, fg_color="Orange", text="Pause", width = 150)
@@ -165,11 +164,7 @@ class App(customtkinter.CTk):
     os.system('"%s' % arduino_path)
     
   def open_graph(self):
-    plt.plot(list(meter_data.keys()),list(meter_data.values()))
-    plt.title("Calculated Contact Resistance")
-    plt.xlabel("Finger")
-    plt.ylabel("Contact Resistance")
-    plt.show()   
+    get_measurement_keithley_2401() 
      
   def connect_arduino(self):
     ports = serial.tools.list_ports.comports()
@@ -200,9 +195,9 @@ class App(customtkinter.CTk):
     ## SEND VARIABLES 
     global gap_width
     global num_fingers
-             
-    variables = "<" + gap_width + "," + num_fingers
-    variables = variables + '\n' + ">"
+      
+    variables = "<" + num_fingers + ">"
+    # variables = "<" + gap_width + "," + num_fingers + ">"
     #gapWidth = "g" + gap_width + '\n' + ">"
     #numFingers= "n" + num_fingers + '\n' + ">"
     #input("Press Enter to continue...")
@@ -213,10 +208,10 @@ class App(customtkinter.CTk):
     #serial_inst.write(gap_width.encode('utf-8'))
     #serial_inst.write(num_fingers.encode('utf-8'))
 
-    for i in range(60):
-      serial_inst.write(variables.encode('utf-8'))
-      serial_inst.flush
-      print("SENT:", variables)
+    #for i in range(60):
+    serial_inst.write(variables.encode('utf-8'))
+    serial_inst.flush
+    print("SENT:", variables)
        
       #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
     
