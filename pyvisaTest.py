@@ -18,6 +18,7 @@ def get_measurement_keithley_2401():
     keithley.write('*RST')                  
     keithley.write('*CLS')
     # Setup Meter 
+    gap_width = 0.89
     num_fingers = 6
     numReadings = str(num_fingers*2)
     rowName = "Finger"
@@ -70,7 +71,16 @@ def get_measurement_keithley_2401():
     row_array = []
     for i in range(0, num_fingers, 1) :
         row_array.append("Finger_" + str(i+1))
-    df.index = row_array   
+    df.index = row_array  
+    
+    df['Distance'] = [0.89]
+    df['R+'] = df['Voltage+'] / df['Current+'] 
+    df['R-'] = df['Voltage-'] / df['Current-'] 
+    df['Rmittel'] = (df['R+'] - df['R-'])/2
+   # df['R+'] = df['voltage-']
+    
+    
+     
     print(df)
     
     
