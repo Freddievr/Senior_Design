@@ -11,13 +11,12 @@ import time
 import pyvisa
 import pandas as pd
 import numpy as np
+from pandastable import Table, TableModel, config
 
-customtkinter.set_appearance_mode(
-    "System")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("uncc.json") 
 
 class App(customtkinter.CTk):
-
   def __init__(self):
     super().__init__()
 
@@ -28,7 +27,7 @@ class App(customtkinter.CTk):
     # configure grid layout (4x4)
     self.grid_columnconfigure((0,1,2), weight=1)
     self.grid_rowconfigure((0, 1, 2), weight=1)
-
+   
     # create sidebar frame with widgets
     self.sidebar_frame = customtkinter.CTkFrame(self,
                                                 width=10,
@@ -130,6 +129,8 @@ class App(customtkinter.CTk):
     self.label_gap_width.grid(row=0, column=2, padx=2, pady=80, sticky="n")
     self.label_num_fingers = customtkinter.CTkLabel(self, text = "# of Fingers: ")
     self.label_num_fingers.grid(row=0, column=2, padx=2, pady=2, sticky="ew")
+    
+    
 # FUNCTIONS Define
 
   def button_stop(self):    
@@ -212,7 +213,7 @@ class App(customtkinter.CTk):
     #serial_inst.write(num_fingers.encode('utf-8'))
 
     #for i in range(60):
-    serial_inst.write(variables.encode('utf-8'))
+    serial_inst.write(variables.encode('ascii'))   #'utf-8'
     serial_inst.flush
     print("SENT:", variables)
        
@@ -364,21 +365,30 @@ def get_measurement_keithley_2401():
     b1 = find_intercept(xs,ys)   
     y_int = find_intercept(ys,xs)
     x_int = abs(b1)/num_fingers
-    contact_resistance = (x_int/strip_width)*(y_int/strip_width)*(strip_width/num_fingers) # ohm-cm^2
+    contact_resistance = (x_int/strip_width)*(y_int/strip_width)*(strip_width/num_fingers) # oh m-cm^2
     
     x_y_cr = [x_int, y_int, contact_resistance]
-
-    # PLOT GRAPH
+    print(x_y_cr) 
+    
+    # tableframe = customtkinter.CTkFrame(master=app, width=200, height=200)
+    # pt = Table(tableframe,
+    #                        dataframe=df,
+    #                        showtoolbar=True,
+    #                        showstatusbar=True)
+    #pt.show()
+        
+    #PLOT GRAPH
     plt.title("Contact Resistance Regression")
     plt.xlabel("Distance (mm)")
     plt.ylabel("Resistance (\u03A9)")
     plt.grid(True)
     plt.show()
-    
+
 def find_intercept(xs,ys):
     m = (((np.mean(xs)*np.mean(ys)) - np.mean(xs*ys)) * ((np.mean(xs)*np.mean(xs)) - np.mean(xs*xs)))
     b = np.mean(ys) - m*np.mean(xs)
     return b     
+
 
 if __name__ == "__main__":
   app = App()
