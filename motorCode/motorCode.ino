@@ -8,9 +8,9 @@ AccelStepper stepperZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 #define xLS 11                // Pin number of left limit switch
 #define zTS 12                // Pin number of top limit switch
 #define zBS 13                // Pin number of bottom limit switch
-#define maxSpd 3000           // Max spped
-#define normSpd 2000          // Normal run speed
-#define acclSpd 1500          // Max acceleration speed
+#define maxSpd 5000           // Max spped
+#define normSpd 3000          // Normal run speed
+#define acclSpd 3000          // Max acceleration speed
 #define STEP_PER_MM 320       // Step for 1mm movement
 #define MM_PER_STEP 0.003125  // mm movement for 1 step
 // Global Variables
@@ -41,18 +41,23 @@ void setup() {
   stepperZ.setAcceleration(acclSpd);  // Set Acceleration of Stepper
   stepperZ.setSpeed(normSpd);
 
-  // calibrateHome();  // Home localization
+  calibrateHome();  // Home localization
 }
 
 void loop() {
-  recvWithEndMarker();
-  showNewNumber();
-  measureSample();
+  // recvWithEndMarker();
+  // showNewNumber();
+  // measureSample();
+
+  // while (digitalRead(zTS) == 1) {  // Make the Stepper move CW until the switch is activated
+  //   stepperZ.move(-1600);          // Set the position to move to
+  //   stepperZ.runSpeed();           // Start moving the stepper
+  // }
 }
 
 void calibrateHome() {
   // Move vertical motor to top limit switch
-  while (digitalRead(zTS) == 1) {  // Make the Stepper move CW until the switch is activated
+  while (digitalRead(zTS) == 0) {  // Make the Stepper move CCW until the switch is activated
     stepperZ.move(-1600);          // Set the position to move to
     stepperZ.runSpeed();           // Start moving the stepper
   }
@@ -68,12 +73,12 @@ void calibrateHome() {
   stepperX.runToNewPosition(-800);
   stepperX.setCurrentPosition(0);  // Set right limit switch as zero position on horizontal switch
   // Move horizontal to left limit switch
-  while (digitalRead(xLS) == 0) {  // Make the Stepper move CW until the switch is activated
+  while (digitalRead(xLS) == 0) {  // Make the Stepper move CCW until the switch is activated
     stepperX.move(-1600);          // Set the position to move to
     stepperX.runSpeed();           // Start moving the stepper
   }
   // Move vertical to calibrate contact
-  while (digitalRead(zBS) == 1) {  // Make the Stepper move CW until the switch is activated
+  while (digitalRead(zBS) == 0) {  // Make the Stepper move CW until the switch is activated
     stepperZ.move(1600);           // Set the position to move to
     stepperZ.runSpeed();           // Start moving the stepper
   }
