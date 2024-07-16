@@ -11,7 +11,6 @@ import time
 import pyvisa
 import pandas as pd
 import numpy as np
-#from pyvisaTest import get_measurement_keithley_2401
 
 customtkinter.set_appearance_mode(
     "System")  # Modes: "System" (standard), "Dark", "Light"
@@ -197,7 +196,7 @@ class App(customtkinter.CTk):
     # self.send_button.grid(row=5, column=0, padx=20, pady=10)
         
     ## SEND VARIABLES 
-    global gap_width
+    #global gap_width
     global num_fingers
       
     variables = "<" + num_fingers + ">"
@@ -283,12 +282,11 @@ def get_measurement_keithley_2401():
     keithley.write('*CLS')
     # Setup VARIABLES 
     gap_width = 0.89            # in mm
-    strip_width = 2             # in mm
+    strip_width = 0.2             # in cm
     num_fingers = 6                 ## CHANGE ##                ###### NOT OVER 7??????
     numReadings = str(num_fingers*2)
     rowName = "Finger"
-    
-    
+        
     # Setup Meter
     keithley.write(":SOUR:FUNC:MODE CURR")             # Select current source 
     # setup current sweep mode & points
@@ -354,35 +352,33 @@ def get_measurement_keithley_2401():
     df2.loc[:,'Distance'] = df.loc[:,'Distance']
     df2.loc[:,'Rmittel'] = df.loc[:,'Rmittel']
     df2.plot.line(x='Distance', y='Rmittel')
+    # CALCULATE INTERCEPTS
+    distance_np = np.array(distance_array,dtype=np.float64)
+    rmittel_array = df2['Rmittel']
+    rmittel_np = np.array(rmittel_array,dtype=np.float64)
+    xs = np.array(distance_np, dtype=np.float64)
+    ys = np.array(rmittel_np, dtype=np.float64)
+    #print(xs,ys)     # ACI-RD0123G EXAMPLE DATA REPLACE # OF FINGERS WITH 11
+    #xs = np.array([130.65, 252.225, 362.525, 475.575, 581.3, 665.975, 739.275, 791.175, 827.225, 861.075, 905.225], dtype=np.float64)
+    #ys = np.array([0.89, 1.815, 2.74, 3.665, 4.59, 5.515, 6.44, 7.365, 8.29, 9.215, 10.14], dtype=np.float64)
+    b1 = find_intercept(xs,ys)   
+    y_int = find_intercept(ys,xs)
+    x_int = abs(b1)/num_fingers
+    contact_resistance = (x_int/strip_width)*(y_int/strip_width)*(strip_width/num_fingers) # ohm-cm^2
+    
+    x_y_cr = [x_int, y_int, contact_resistance]
+
     # PLOT GRAPH
     plt.title("Contact Resistance Regression")
     plt.xlabel("Distance (mm)")
     plt.ylabel("Resistance (\u03A9)")
     plt.grid(True)
     plt.show()
-    # CALCULATE INTERCEPTS
-    rmittel_array = df2['Rmittel'].to_numpy()
-    xs = np.array(distance_array, dtype=np.float64)
-    ys = np.array(rmittel_array, dtype=np.float64)
-    # print(xs,ys)      ACI-RD0123G EXAMPLE DATA REPLACE # OF FINGERS WITH 11
-    #xs = np.array([130.65, 252.225, 362.525, 475.575, 581.3, 665.975, 739.275, 791.175, 827.225, 861.075, 905.225], dtype=np.float64)
-    #ys = np.array([0.89, 1.815, 2.74, 3.665, 4.59, 5.515, 6.44, 7.365, 8.29, 9.215, 10.14], dtype=np.float64)
-    m1, b1 = intercept(xs,ys)   
-    m2, y_intercept = intercept(ys,xs)
-    x_intercept = abs(b1)/num_fingers
-    contact_resistance = ((x_intercept/(strip_width/10))*(y_intercept/(strip_width/10))*((strip_width/10)/num_fingers)) # ohm-cm^2
     
-    x_y_cr = [x_intercept, y_intercept, contact_resistance]
-    print(df)
-    print(x_y_cr)
-    return df   
-
-def intercept(xs,ys):
-    m = (((mean(xs)*mean(ys)) - mean(xs*ys)) 
-         ((mean(xs)*mean(xs)) - mean(xs*xs)))
-    
-    b = mean(ys) - m*mean(xs)
-    return m, b     
+def find_intercept(xs,ys):
+    m = (((np.mean(xs)*np.mean(ys)) - np.mean(xs*ys)) * ((np.mean(xs)*np.mean(xs)) - np.mean(xs*xs)))
+    b = np.mean(ys) - m*np.mean(xs)
+    return b     
 
 if __name__ == "__main__":
   app = App()
