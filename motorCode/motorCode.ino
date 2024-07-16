@@ -11,14 +11,14 @@ AccelStepper stepperZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 #define maxSpd 5000           // Max spped
 #define normSpd 3000          // Normal run speed
 #define acclSpd 3000          // Max acceleration speed
-#define STEP_PER_MM 320       // Step for 1mm movement
+#define STEP_PER_MM 3200       // Step for 1mm movement - 320
 #define MM_PER_STEP 0.003125  // mm movement for 1 step
 // Global Variables
 int negAxis = 0;
 const byte numChars = 32;
 char receivedChars[numChars];  // an array to store the received data
 boolean newData = false;
-int dataNumber = 0;  // new for this version
+int dataNumber = 10;  // new for this version
 
 // Forward declaration
 void calibrateHome();
@@ -41,13 +41,13 @@ void setup() {
   stepperZ.setAcceleration(acclSpd);  // Set Acceleration of Stepper
   stepperZ.setSpeed(normSpd);
 
-  calibrateHome();  // Home localization
+  // calibrateHome();  // Home localization
 }
 
 void loop() {
   // recvWithEndMarker();
   // showNewNumber();
-  // measureSample();
+  measureSample();
 
   // while (digitalRead(zTS) == 1) {  // Make the Stepper move CW until the switch is activated
   //   stepperZ.move(-1600);          // Set the position to move to
