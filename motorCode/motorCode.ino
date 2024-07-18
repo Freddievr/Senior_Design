@@ -1,131 +1,116 @@
-#include "AccelStepper.h"
+/*
+ * Created by ArduinoGetStarted.com
+ *
+ * This example code is in the public domain
+ *
+ * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-stepper-motor-and-limit-switch
+ */
 
-// AccelStepper Setup
-AccelStepper stepperX(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
-AccelStepper stepperZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
-// Define the Pins used
-#define xRS 10                // Pin number of right limit switch
-#define xLS 11                // Pin number of left limit switch
-#define zTS 12                // Pin number of top limit switch
-#define zBS 13                // Pin number of bottom limit switch
-#define maxSpd 5000           // Max spped
-#define normSpd 3000          // Normal run speed
-#define acclSpd 3000          // Max acceleration speed
-#define STEP_PER_MM 3200       // Step for 1mm movement - 320
-#define MM_PER_STEP 0.003125  // mm movement for 1 step
-// Global Variables
-int negAxis = 0;
-const byte numChars = 32;
-char receivedChars[numChars];  // an array to store the received data
-boolean newData = false;
-int dataNumber = 10;  // new for this version
+#include <ezButton.h>
+#include <AccelStepper.h>
 
-// Forward declaration
-void calibrateHome();
-void measureSample();
+#define xRS 13  // Pin 12 connected to Home Switch (MicroSwitch)
+#define xLS 12
+#define zTS 11  // Pin 12 connected to Home Switch (MicroSwitch)
+#define zBS 10
+#define DIRECTION_CCW -1
+#define DIRECTION_CW 1
 
+#define MAX_POSITION 150000  // maximum of position we can set (long type)
+
+ezButton lxr(xRS);
+ezButton lxl(xLS);
+ezButton lzt(zTS);
+ezButton lzb(zBS);
+
+AccelStepper sX(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
+AccelStepper sZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
+
+int directionX = DIRECTION_CW;
+int directionZ = DIRECTION_CW;
+long targetPosX = 0;
+long targetPosZ = 0;
+bool homeXPos = false;
+bool homeZPos = false;
 
 void setup() {
   Serial.begin(9600);
-  // Initialized pinmodes for buttons
-  pinMode(xRS, INPUT_PULLUP);
-  pinMode(xLS, INPUT_PULLUP);
-  pinMode(zBS, INPUT_PULLUP);
-  pinMode(zTS, INPUT_PULLUP);
 
-  //  Set Max Speed and Acceleration of each Steppers at startup for homing
-  stepperX.setMaxSpeed(maxSpd);       // Set Max Speed of Stepper (Slower to get better accuracy)
-  stepperX.setAcceleration(acclSpd);  // Set Acceleration of Stepper
-  stepperX.setSpeed(normSpd);
-  stepperZ.setMaxSpeed(maxSpd);       // Set Max Speed of Stepper (Slower to get better accuracy)
-  stepperZ.setAcceleration(acclSpd);  // Set Acceleration of Stepper
-  stepperZ.setSpeed(normSpd);
+  lxr.setDebounceTime(50);  // set debounce time to 50 milliseconds
+  lxl.setDebounceTime(50);  // set debounce time to 50 milliseconds
+  lzt.setDebounceTime(50);  // set debounce time to 50 milliseconds
+  lzb.setDebounceTime(50);  // set debounce time to 50 milliseconds
 
-  // calibrateHome();  // Home localization
+  sX.setMaxSpeed(80000.0);      // set the maximum speed
+  sX.setAcceleration(20000.0);  // set acceleration
+  sX.setSpeed(80000);           // set initial speed
+  sX.setCurrentPosition(0);     // set position
+
+  sZ.setMaxSpeed(32000.0);     // set the maximum speed
+  sZ.setAcceleration(1000.0);  // set acceleration
+  sZ.setSpeed(16000);          // set initial speed
+  sZ.setCurrentPosition(0);    // set position
+
+  targetPosX = directionX * MAX_POSITION;
+  targetPosZ = directionZ * MAX_POSITION;
+  sX.moveTo(targetPosX);
+  sZ.moveTo(-targetPosZ);
 }
 
 void loop() {
-  // recvWithEndMarker();
-  // showNewNumber();
-  measureSample();
+  lxr.loop();  // MUST call the loop() function first
+  lxl.loop();
+  lzt.loop();
+  lzb.loop();
 
-  // while (digitalRead(zTS) == 1) {  // Make the Stepper move CW until the switch is activated
-  //   stepperZ.move(-1600);          // Set the position to move to
-  //   stepperZ.runSpeed();           // Start moving the stepper
+  setXHome();
+  setZHome();
+  // if (lzt.isPressed() || lzb.isPressed()) {
+  //   Serial.println(F("The limit switch: TOUCHED"));
+  //   directionZ *= -1;  // change direction
+  //   Serial.print(F("The direction -> "));
+  //   if (directionZ == DIRECTION_CW)
+  //     Serial.println(F("CLOCKWISE"));
+  //   else
+  //     Serial.println(F("ANTI-CLOCKWISE"));
+
+  //   targetPosZ = directionZ * MAX_POSITION;
+  //   sZ.setCurrentPosition(0);  // set position
+  //   sZ.moveTo(targetPosZ);
+  // }
+
+  // without this part, the move will stop after reaching maximum position
+  // if (sX.distanceToGo() == 0) {  // if motor moved to the maximum position
+  //   sX.setCurrentPosition(0);    // reset position to 0
+  //   sX.move(0);                  // move the motor to maximum position again
+  //   homeXPos = true;
+  // }
+
+  // // without this part, the move will stop after reaching maximum position
+  // if (sZ.distanceToGo() == 0) { // if motor moved to the maximum position
+  //   sZ.setCurrentPosition(0);   // reset position to 0
+  //   sZ.moveTo(targetPosZ);       // move the motor to maximum position again
   // }
 }
 
-void calibrateHome() {
-  // Move vertical motor to top limit switch
-  while (digitalRead(zTS) == 0) {  // Make the Stepper move CCW until the switch is activated
-    stepperZ.move(-1600);          // Set the position to move to
-    stepperZ.runSpeed();           // Start moving the stepper
+void setXHome() {
+  if (lxr.isPressed()) {
+    sX.setCurrentPosition(0);  // set position
+    sX.moveTo(0);
+    homeXPos = true;
   }
-  stepperZ.setCurrentPosition(0);
-  stepperZ.runToNewPosition(800);
-  stepperZ.setCurrentPosition(0);  // Set zero position on top limit switch
-  // Move horizontal motor to right limit switch
-  while (digitalRead(xRS) == 0) {  // Make the Stepper move CW until the switch is activated
-    stepperX.move(1600);           // Set the position to move to
-    stepperX.runSpeed();           // Start moving the stepper
-  }
-  stepperX.setCurrentPosition(0);
-  stepperX.runToNewPosition(-800);
-  stepperX.setCurrentPosition(0);  // Set right limit switch as zero position on horizontal switch
-  // Move horizontal to left limit switch
-  while (digitalRead(xLS) == 0) {  // Make the Stepper move CCW until the switch is activated
-    stepperX.move(-1600);          // Set the position to move to
-    stepperX.runSpeed();           // Start moving the stepper
-  }
-  // Move vertical to calibrate contact
-  while (digitalRead(zBS) == 0) {  // Make the Stepper move CW until the switch is activated
-    stepperZ.move(1600);           // Set the position to move to
-    stepperZ.runSpeed();           // Start moving the stepper
-  }
-  stepperZ.setCurrentPosition(0);    // Set vertical contact position
-  stepperZ.runToNewPosition(-4800);  // Move vertical off contact position
-  stepperX.runToNewPosition(0);      // Move to horizontal to zero position
-}
-void measureSample() {
-  if (stepperX.distanceToGo() == 0 && negAxis < dataNumber) {
-    stepperX.move(-STEP_PER_MM);
-    negAxis++;
-    stepperZ.runToNewPosition(-4800);
-    stepperZ.runToNewPosition(0);
-    delay(500);
-    stepperZ.runToNewPosition(-4800);
-    delay(1000);
-  }
-  stepperX.run();
-}
-
-void recvWithEndMarker() {
-  static byte ndx = 0;
-  char endMarker = '\n';
-  char rc;
-
-  if (Serial.available() > 0) {
-    rc = Serial.read();
-
-    if (rc != endMarker) {
-      receivedChars[ndx] = rc;
-      ndx++;
-      if (ndx >= numChars) {
-        ndx = numChars - 1;
-      }
-    } else {
-      receivedChars[ndx] = '\0';  // terminate the string
-      ndx = 0;
-      newData = true;
-    }
+  if (homeXPos == false) {
+    sX.run();  // MUST be called in loop() function
   }
 }
 
-void showNewNumber() {
-  if (newData == true) {
-    dataNumber = 0;
-    dataNumber = atoi(receivedChars);
-    Serial.println(dataNumber);
-    newData = false;
+void setZHome() {
+  if (lzt.isPressed()) {
+    sX.setCurrentPosition(0);  // set position
+    sX.moveTo(0);
+    homeZPos = true;
+  }
+    if (homeZPos == false) {
+    sZ.run();
   }
 }

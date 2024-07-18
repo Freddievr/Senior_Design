@@ -16,7 +16,7 @@
 #define DIRECTION_CCW -1
 #define DIRECTION_CW   1
 
-#define MAX_POSITION 0x7FFFFFFF // maximum of position we can set (long type)
+#define MAX_POSITION 150000 // maximum of position we can set (long type)
 
 ezButton lxr(xRS);
 ezButton lxl(xLS);
