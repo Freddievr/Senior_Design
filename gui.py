@@ -332,7 +332,7 @@ def get_measurement_keithley_2401():
     #print(values)
 
     # setup main dataframe
-    col = ['Voltage-','Current-','Resistance1','Time1','Status1', 'Voltage+','Current+','Resistance2','Time2','Status2']
+    col = ['Voltage (V) @ -20mA','Current-','Resistance1','Time1','Status1', 'Voltage (V) @ +20mA','Current+','Resistance2','Time2','Status2']
     df = pd.DataFrame(values,columns=col)
     df.drop(columns = ['Resistance1','Time1','Status1','Resistance2','Time2','Status2'], inplace = True)   
     row_array = []
@@ -344,18 +344,21 @@ def get_measurement_keithley_2401():
 
     ### Calculate Contact Resistance ###
     # Setup Resistance & Distance Dataframe Columns
-    df['Distance'] = distance_array
-    df['R+'] = df['Voltage+'] / df['Current+'] 
-    df['R-'] = df['Voltage-'] / df['Current-'] 
-    df['Rmittel'] = (df['R+'] - df['R-'])/2
+    df['R+'] = df['Voltage (V) @ +20mA'] / df['Current+'] 
+    df['R-'] = df['Voltage (V) @ -20mA'] / df['Current-'] 
+    df['Rmittel (\u03A9)'] = (df['R+'] - df['R-'])/2
+    df['Distance (mm)'] = distance_array
+    dft = df.copy()
+    dft.drop(columns= ['R-','R+','Current-','Current+'], inplace = True)
     # Setup Temp DATAFRAME FOR CALCULATIONS
     df2 = pd.DataFrame()
-    df2.loc[:,'Distance'] = df.loc[:,'Distance']
-    df2.loc[:,'Rmittel'] = df.loc[:,'Rmittel']
-    df2.plot.line(x='Distance', y='Rmittel')
+    df2.loc[:,'Rmittel (\u03A9)'] = df.loc[:,'Rmittel (\u03A9)']
+    df2.loc[:,'Distance (mm)'] = df.loc[:,'Distance (mm)']
+    
+    # Setup Temp DATAFRAME FOR CALCULATIONS 
     # CALCULATE INTERCEPTS
     distance_np = np.array(distance_array,dtype=np.float64)
-    rmittel_array = df2['Rmittel']
+    rmittel_array = df2['Rmittel (\u03A9)']
     rmittel_np = np.array(rmittel_array,dtype=np.float64)
     xs = np.array(distance_np, dtype=np.float64)
     ys = np.array(rmittel_np, dtype=np.float64)
@@ -367,21 +370,32 @@ def get_measurement_keithley_2401():
     x_int = abs(b1)/num_fingers
     contact_resistance = (x_int/strip_width)*(y_int/strip_width)*(strip_width/num_fingers) # oh m-cm^2
     
-    x_y_cr = [x_int, y_int, contact_resistance]
-    print(x_y_cr) 
-    
-    # tableframe = customtkinter.CTkFrame(master=app, width=200, height=200)
-    # pt = Table(tableframe,
-    #                        dataframe=df,
-    #                        showtoolbar=True,
-    #                        showstatusbar=True)
-    #pt.show()
+    dft = dft.round(3)
+    dft2 = pd.DataFrame([[x_int, y_int, contact_resistance]],columns=['X Intercept','Y Intercept','Contact Resistance'], index=None)
         
     #PLOT GRAPH
-    plt.title("Contact Resistance Regression")
-    plt.xlabel("Distance (mm)")
-    plt.ylabel("Resistance (\u03A9)")
-    plt.grid(True)
+    df2.plot(x='Distance (mm)', y='Rmittel (\u03A9)', layout=(1,3), subplots=True, xlabel = "Distance (mm)", ylabel = "Resistance (\u03A9)",kind = 'line', title = "Contact Resistance Regression", grid = True)        
+    #define Table 1
+    ax1 = plt.subplot(122)
+    ax1.axis('off')
+    ax1.axis('tight')
+    ax1.margins(0) 
+    #create Table 1
+    table1 = ax1.table(cellText=dft.values, colLabels=dft.columns, rowLabels=dft.index, colLoc='center', loc='center')
+    table1.auto_set_font_size(False)
+    table1.set_fontsize(10)
+    table1.scale(1.12,1.2)
+    #define Table 2
+    ax2 = plt.subplot(122)
+    ax2.axis('off')
+    ax2.axis('tight')
+    ax2.margins(0) 
+    #create Table 2
+    table2 = ax2.table(cellText=dft2.values, colLabels=dft2.columns, rowLabels=None, colLoc='center', loc='lower right', cellColours= [['#A49665','#A49665','#A49665']], colColours= ['#A49665','#A49665','#A49665'])
+    table2.auto_set_font_size(False)
+    table2.set_fontsize(10)
+    table2.scale(1.12,1.2)
+    # Display Figures
     plt.show()
 
 def find_intercept(xs,ys):
