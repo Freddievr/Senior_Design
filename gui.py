@@ -273,7 +273,7 @@ def get_measurement_keithley_2401():
     rm = pyvisa.ResourceManager('@ivi')
     resources = rm.list_resources()
     print(resources)
-    os.makedirs("C:/Users/PVRL-01/Documents/S24PROBE/Test Results", exist_ok=True)      ## DIRECTORY FOR TEST RESULTS TO BE SAVED
+    os.makedirs("C:/Users/PVRL-01/Documents/S24PROBE_Test_Results", exist_ok=True)      ## DIRECTORY FOR TEST RESULTS TO BE SAVED
     # Open Connection to Meter
     keithley = rm.open_resource('GPIB0::11::INSTR')
     print(keithley.query('*IDN?'))
@@ -369,7 +369,7 @@ def get_measurement_keithley_2401():
     dft2 = pd.DataFrame([[x_int, y_int, sheet_resistance, sci_contact_resistance]],columns=['X Intercept','Y Intercept','Sheet Resistance (\u03A9/sq)', 'Contact Resistance (\u03A9-cm2)'], index=None)
     dft2 = dft2.round(4)
     dt = datetime.now().strftime('%I_%M_%p')
-    with pd.ExcelWriter("C:/Users/PVRL-01/Documents/S24PROBE/Test Results/Results_" + str(dt) +".xlsx") as writer:  
+    with pd.ExcelWriter("C:/Users/PVRL-01/Documents/S24PROBE_Test_Results/Results_" + str(dt) +".xlsx") as writer:  
         df.to_excel(writer, sheet_name='DataResults')
         dft2.to_excel(writer, sheet_name='CalculatedResults')
     #PLOT GRAPH
