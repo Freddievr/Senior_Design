@@ -13,10 +13,15 @@
 #define xLS 12
 #define zTS 11  // Pin 12 connected to Home Switch (MicroSwitch)
 #define zBS 10
-#define DIRECTION_CCW -1
-#define DIRECTION_CW 1
-
+#define AWAY_MOTOR -1
+#define TOWARD_MOTOR 1
 #define MAX_POSITION 150000  // maximum of position we can set (long type)
+#define MAX_SPD 3000
+#define NORM_SPD 2000
+#define ACCL_SPD 3000
+#define STEP_PER_MM 320
+#define MM_PER_STEP 0.003125
+#define Z_MEASURE_STEP 4000
 
 ezButton lxr(xRS);
 ezButton lxl(xLS);
@@ -26,12 +31,19 @@ ezButton lzb(zBS);
 AccelStepper sX(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
 AccelStepper sZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 
-int directionX = DIRECTION_CW;
-int directionZ = DIRECTION_CW;
+void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd);
+void moveXHome();
+void moveZTopHome();
+void moveStpr(int selStpr, int steps, int direction);
+
 long targetPosX = 0;
 long targetPosZ = 0;
 bool homeXPos = false;
-bool homeZPos = false;
+bool homeZTopPos = false;
+bool homeZBotPos = false;
+bool measuringZInProg = false;
+unsigned long previousMillis = 0;
+const long interval = 2000;
 
 void setup() {
   Serial.begin(9600);
@@ -41,20 +53,15 @@ void setup() {
   lzt.setDebounceTime(50);  // set debounce time to 50 milliseconds
   lzb.setDebounceTime(50);  // set debounce time to 50 milliseconds
 
-  sX.setMaxSpeed(80000.0);      // set the maximum speed
-  sX.setAcceleration(20000.0);  // set acceleration
-  sX.setSpeed(80000);           // set initial speed
-  sX.setCurrentPosition(0);     // set position
+  setMotorSpd(3, MAX_SPD, NORM_SPD, ACCL_SPD);
+  sX.setCurrentPosition(0);  // set position
+  sZ.setCurrentPosition(0);  // set position
 
-  sZ.setMaxSpeed(32000.0);     // set the maximum speed
-  sZ.setAcceleration(1000.0);  // set acceleration
-  sZ.setSpeed(16000);          // set initial speed
-  sZ.setCurrentPosition(0);    // set position
-
-  targetPosX = directionX * MAX_POSITION;
-  targetPosZ = directionZ * MAX_POSITION;
-  sX.moveTo(targetPosX);
-  sZ.moveTo(-targetPosZ);
+  // targetPosX = TOWARD_MOTOR * MAX_POSITION;
+  targetPosX = TOWARD_MOTOR * MAX_POSITION;
+  targetPosZ = AWAY_MOTOR * MAX_POSITION;
+  // sX.move(targetPosX);
+  sZ.move(targetPosZ);
 }
 
 void loop() {
@@ -62,41 +69,70 @@ void loop() {
   lxl.loop();
   lzt.loop();
   lzb.loop();
+  // unsigned long currentMillis = millis();
 
-  setXHome();
-  setZHome();
-  // if (lzt.isPressed() || lzb.isPressed()) {
-  //   Serial.println(F("The limit switch: TOUCHED"));
-  //   directionZ *= -1;  // change direction
-  //   Serial.print(F("The direction -> "));
-  //   if (directionZ == DIRECTION_CW)
-  //     Serial.println(F("CLOCKWISE"));
-  //   else
-  //     Serial.println(F("ANTI-CLOCKWISE"));
-
-  //   targetPosZ = directionZ * MAX_POSITION;
-  //   sZ.setCurrentPosition(0);  // set position
-  //   sZ.moveTo(targetPosZ);
+  // // moveXHome();
+  // if(homeZTopPos == false){
+  // moveZTopHome();
+  // if(homeZBotPos = false){
+    // sZ.move(-targetPosZ);
   // }
-
-  // without this part, the move will stop after reaching maximum position
-  // if (sX.distanceToGo() == 0) {  // if motor moved to the maximum position
-  //   sX.setCurrentPosition(0);    // reset position to 0
-  //   sX.move(0);                  // move the motor to maximum position again
-  //   homeXPos = true;
+  moveZTopHome();
+  if(homeZTopPos == true){
+    sZ.move(1600);  
+  }  
+  moveZBotHome();
+  
   // }
-
-  // // without this part, the move will stop after reaching maximum position
-  // if (sZ.distanceToGo() == 0) { // if motor moved to the maximum position
-  //   sZ.setCurrentPosition(0);   // reset position to 0
-  //   sZ.moveTo(targetPosZ);       // move the motor to maximum position again
+  // setMotorSpd(1, MAX_SPD, NORM_SPD, ACCL_SPD);
+  // // moveStpr(1, 1600, AWAY_MOTOR);
+  // if(homeZTopPos == true){
+    // sZ.moveTo(4000);
+  // }
+  // sX.setSpeed(-3000);
+  // sZ.run();
+  /* increment with time without delay
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    sX.moveTo(-targetPosX);
+    if(sX.distanceToGo() == 0){
+      targetPosX += 1600;
+    }
+  }
+*/
+  // measureZ();
+  // sX.moveTo(-1600);
+  // if(sX.distanceToGo() == 0){
+  // sX.moveTo(-1600);
+  // sZ.run();
   // }
 }
 
-void setXHome() {
+void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd) {
+  if (selMotor == 1) {
+    sX.setMaxSpeed(maxSpd);       // set the maximum speed
+    sX.setAcceleration(acclSpd);  // set acceleration
+    sX.setSpeed(normSpd);         // set initial speed
+  }
+  if (selMotor == 1) {
+    sZ.setMaxSpeed(maxSpd);       // set the maximum speed
+    sZ.setAcceleration(acclSpd);  // set acceleration
+    sZ.setSpeed(normSpd);         // set initial speed
+  }
+  if (selMotor == 3) {
+    sX.setMaxSpeed(maxSpd);       // set the maximum speed
+    sX.setAcceleration(acclSpd);  // set acceleration
+    sX.setSpeed(normSpd);         // set initial speed
+    sZ.setMaxSpeed(maxSpd);       // set the maximum speed
+    sZ.setAcceleration(acclSpd);  // set acceleration
+    sZ.setSpeed(normSpd);
+  }
+}
+
+void moveXHome() {
   if (lxr.isPressed()) {
     sX.setCurrentPosition(0);  // set position
-    sX.moveTo(0);
+    sX.move(0);
     homeXPos = true;
   }
   if (homeXPos == false) {
@@ -104,13 +140,60 @@ void setXHome() {
   }
 }
 
-void setZHome() {
+void moveZTopHome() {
   if (lzt.isPressed()) {
-    sX.setCurrentPosition(0);  // set position
-    sX.moveTo(0);
-    homeZPos = true;
+    sZ.setCurrentPosition(0);  // set position
+    sZ.move(0);
+    homeZTopPos = true;
   }
-    if (homeZPos == false) {
+  if (homeZTopPos == false) {
+    sZ.run();
+  }
+  if (homeZTopPos == true && homeZBotPos == false) {
+    sZ.move(1600);
+  }
+}
+
+void moveZBotHome() {
+  if (lzb.isPressed()) {
+    sZ.setCurrentPosition(0);  // set position
+    sZ.move(0);
+    homeZBotPos = true;
+  }
+  if (homeZBotPos == false) {
     sZ.run();
   }
 }
+
+void measureZ() {
+  unsigned long currentMillis = millis();
+  targetPosZ = Z_MEASURE_STEP;
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    sZ.moveTo(-targetPosZ);
+    if (sZ.distanceToGo() == 0) {
+      targetPosZ *= -1;
+    }
+  }
+  if (sZ.distanceToGo() == 0) {
+    sZ.moveTo(0);
+  }
+}
+
+
+// void moveStpr(int selStpr, int steps, int direction){
+//   targetPosX = direction * steps;
+//   targetPosZ = direction * steps;
+//   if(selStpr == 1){
+//     sX.move(targetPosX);
+//   }
+//   if(selStpr == 2){
+//     sZ.move(targetPosZ);
+//   }
+//   if(selStpr == 1){
+//     sX.run();
+//   }
+//   if(selStpr == 2){
+//     sZ.run();
+//   }
+// }
