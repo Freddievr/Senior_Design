@@ -26,7 +26,9 @@ AccelStepper sZ(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
 void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd);
 void moveXHome();
 void moveZTopHome();
-void moveStpr(int selStpr, int steps, int direction);
+void moveZBotHome();
+void measureZ();
+void homeCalibration();
 
 long targetPosX = 0;
 long targetPosZ = 0;
@@ -37,9 +39,10 @@ bool probeContact = false;
 bool measuringZInProg = false;
 bool vertDown = false;
 bool incremented = true;
+bool calComplete = false;
 unsigned long previousMillis = 0;
-const long interval = 5000;
-// unsigned long currentMillis = millis();
+const long interval = 3000;
+int time = 3000;
 
 
 void setup() {
@@ -54,13 +57,10 @@ void setup() {
   sX.setCurrentPosition(0);  // set position
   sZ.setCurrentPosition(0);  // set position
 
-  // targetPosX = TOWARD_MOTOR * MAX_POSITION;
   targetPosX = TOWARD_MOTOR * MAX_POSITION;
   targetPosZ = AWAY_MOTOR * MAX_POSITION;
   sX.move(targetPosX);
   sZ.move(targetPosZ);
-  // sZ.moveTo(-8000);
-  // sX.moveTo(-targetPosX);
 }
 
 void loop() {
@@ -68,21 +68,11 @@ void loop() {
   lxl.loop();
   lzt.loop();
   lzb.loop();
+  
   homeCalibration();
-
-  /*-------------------------------------------------------*/
-  // Move vertical
-  // measureZ();
-  // delayMicroseconds(200);
-  // if (sX.distanceToGo() == 0){
-  //   // moveX();
-  //   sX.moveTo(targetPosX);
-  //   targetPosX += 3000;
-  // }
-  // if (vertDown == false){
-  //   sX.run();
-  // }
-  /*-------------------------------------------------------*/
+  if (calComplete == true) {
+    measureZ();
+  }
 }
 
 void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd) {
@@ -106,7 +96,7 @@ void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd) {
   }
 }
 
-void homeCalibration(){
+void homeCalibration() {
   if (homeXPos == false) {
     moveXHome();
   }
@@ -149,6 +139,8 @@ void moveZBotHome() {
     sZ.move(0);
     homeZBotPos = true;
     measuringZInProg = true;
+    calComplete = true;
+    targetPosX = 300;
   }
   if (homeZBotPos == false && measuringZInProg == false) {
     sZ.run();
@@ -156,28 +148,14 @@ void moveZBotHome() {
 }
 
 void measureZ() {
-  unsigned long currentMillis = millis();
-  targetPosX = STEP_PER_MM;
-  if ((currentMillis - previousMillis >= interval) && vertDown == false) {
-    previousMillis = currentMillis;
-    sZ.moveTo(0);
-    sZ.runToPosition();
-    vertDown = true;
-  }
-  if ((currentMillis - previousMillis >= interval) && vertDown == true) {
-    previousMillis = currentMillis;
-    sZ.moveTo(3000);
-    sZ.runToPosition();
-    vertDown = false;
-  }
-}
-
-void moveX() {
-  if (sX.distanceToGo() == 0) {
-    sX.moveTo(targetPosX);
-    targetPosX += 3000;
-  }
-  // sX.runToNewPosition(targetPosX);
-  // targetPosX += 3000;
-  sX.run();
+  sZ.moveTo(time);
+  sZ.runToPosition();
+  delay(time);
+  sZ.moveTo(0);
+  sZ.runToPosition();
+  delay(time);
+  sX.moveTo(-targetPosX);
+  sX.runToPosition();
+  targetPosX += 300;
+  delay(time);
 }
