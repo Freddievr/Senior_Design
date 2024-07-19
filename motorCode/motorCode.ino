@@ -1,11 +1,3 @@
-/*
- * Created by ArduinoGetStarted.com
- *
- * This example code is in the public domain
- *
- * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-stepper-motor-and-limit-switch
- */
-
 #include <ezButton.h>
 #include <AccelStepper.h>
 
@@ -43,8 +35,12 @@ bool homeZTopPos = false;
 bool homeZBotPos = false;
 bool probeContact = false;
 bool measuringZInProg = false;
+bool vertDown = false;
+bool incremented = true;
 unsigned long previousMillis = 0;
-const long interval = 2000;
+const long interval = 5000;
+// unsigned long currentMillis = millis();
+
 
 void setup() {
   Serial.begin(9600);
@@ -63,6 +59,8 @@ void setup() {
   targetPosZ = AWAY_MOTOR * MAX_POSITION;
   sX.move(targetPosX);
   sZ.move(targetPosZ);
+  // sZ.moveTo(-8000);
+  // sX.moveTo(-targetPosX);
 }
 
 void loop() {
@@ -70,29 +68,21 @@ void loop() {
   lxl.loop();
   lzt.loop();
   lzb.loop();
-  if (homeXPos == false) {
-    moveXHome();
-  }
-  if (homeZTopPos == false) {
-    moveZTopHome();
-  }
-  if (homeZTopPos == true && measuringZInProg == false) {
-    sZ.move(1600);
-  }
-  if (measuringZInProg == false) {
-    moveZBotHome();
-  }
-  if (measuringZInProg == true && sZ.distanceToGo() == 0) {
-    sZ.moveTo(Z_MEASURE_STEP);
-  }
-  if (measuringZInProg == true) {
-    sX.run();
-    sZ.run();
-  }
-  if (measuringZInProg == true && sZ.distanceToGo() == 0) {
-    measureZ();
-  }
+  homeCalibration();
 
+  /*-------------------------------------------------------*/
+  // Move vertical
+  // measureZ();
+  // delayMicroseconds(200);
+  // if (sX.distanceToGo() == 0){
+  //   // moveX();
+  //   sX.moveTo(targetPosX);
+  //   targetPosX += 3000;
+  // }
+  // if (vertDown == false){
+  //   sX.run();
+  // }
+  /*-------------------------------------------------------*/
 }
 
 void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd) {
@@ -113,6 +103,21 @@ void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd) {
     sZ.setMaxSpeed(maxSpd);       // set the maximum speed
     sZ.setAcceleration(acclSpd);  // set acceleration
     sZ.setSpeed(normSpd);
+  }
+}
+
+void homeCalibration(){
+  if (homeXPos == false) {
+    moveXHome();
+  }
+  if (homeZTopPos == false) {
+    moveZTopHome();
+  }
+  if (homeZTopPos == true && measuringZInProg == false) {
+    sZ.move(1600);
+  }
+  if (measuringZInProg == false) {
+    moveZBotHome();
   }
 }
 
@@ -152,8 +157,27 @@ void moveZBotHome() {
 
 void measureZ() {
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
+  targetPosX = STEP_PER_MM;
+  if ((currentMillis - previousMillis >= interval) && vertDown == false) {
     previousMillis = currentMillis;
     sZ.moveTo(0);
+    sZ.runToPosition();
+    vertDown = true;
   }
+  if ((currentMillis - previousMillis >= interval) && vertDown == true) {
+    previousMillis = currentMillis;
+    sZ.moveTo(3000);
+    sZ.runToPosition();
+    vertDown = false;
+  }
+}
+
+void moveX() {
+  if (sX.distanceToGo() == 0) {
+    sX.moveTo(targetPosX);
+    targetPosX += 3000;
+  }
+  // sX.runToNewPosition(targetPosX);
+  // targetPosX += 3000;
+  sX.run();
 }
