@@ -41,6 +41,7 @@ long targetPosZ = 0;
 bool homeXPos = false;
 bool homeZTopPos = false;
 bool homeZBotPos = false;
+bool probeContact = false;
 bool measuringZInProg = false;
 unsigned long previousMillis = 0;
 const long interval = 2000;
@@ -60,7 +61,7 @@ void setup() {
   // targetPosX = TOWARD_MOTOR * MAX_POSITION;
   targetPosX = TOWARD_MOTOR * MAX_POSITION;
   targetPosZ = AWAY_MOTOR * MAX_POSITION;
-  // sX.move(targetPosX);
+  sX.move(targetPosX);
   sZ.move(targetPosZ);
 }
 
@@ -69,43 +70,29 @@ void loop() {
   lxl.loop();
   lzt.loop();
   lzb.loop();
-  // unsigned long currentMillis = millis();
-
-  // // moveXHome();
-  // if(homeZTopPos == false){
-  // moveZTopHome();
-  // if(homeZBotPos = false){
-    // sZ.move(-targetPosZ);
-  // }
-  moveZTopHome();
-  if(homeZTopPos == true){
-    sZ.move(1600);  
-  }  
-  moveZBotHome();
-  
-  // }
-  // setMotorSpd(1, MAX_SPD, NORM_SPD, ACCL_SPD);
-  // // moveStpr(1, 1600, AWAY_MOTOR);
-  // if(homeZTopPos == true){
-    // sZ.moveTo(4000);
-  // }
-  // sX.setSpeed(-3000);
-  // sZ.run();
-  /* increment with time without delay
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
-    sX.moveTo(-targetPosX);
-    if(sX.distanceToGo() == 0){
-      targetPosX += 1600;
-    }
+  if (homeXPos == false) {
+    moveXHome();
   }
-*/
-  // measureZ();
-  // sX.moveTo(-1600);
-  // if(sX.distanceToGo() == 0){
-  // sX.moveTo(-1600);
-  // sZ.run();
-  // }
+  if (homeZTopPos == false) {
+    moveZTopHome();
+  }
+  if (homeZTopPos == true && measuringZInProg == false) {
+    sZ.move(1600);
+  }
+  if (measuringZInProg == false) {
+    moveZBotHome();
+  }
+  if (measuringZInProg == true && sZ.distanceToGo() == 0) {
+    sZ.moveTo(Z_MEASURE_STEP);
+  }
+  if (measuringZInProg == true) {
+    sX.run();
+    sZ.run();
+  }
+  if (measuringZInProg == true && sZ.distanceToGo() == 0) {
+    measureZ();
+  }
+
 }
 
 void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd) {
@@ -149,9 +136,6 @@ void moveZTopHome() {
   if (homeZTopPos == false) {
     sZ.run();
   }
-  if (homeZTopPos == true && homeZBotPos == false) {
-    sZ.move(1600);
-  }
 }
 
 void moveZBotHome() {
@@ -159,41 +143,17 @@ void moveZBotHome() {
     sZ.setCurrentPosition(0);  // set position
     sZ.move(0);
     homeZBotPos = true;
+    measuringZInProg = true;
   }
-  if (homeZBotPos == false) {
+  if (homeZBotPos == false && measuringZInProg == false) {
     sZ.run();
   }
 }
 
 void measureZ() {
   unsigned long currentMillis = millis();
-  targetPosZ = Z_MEASURE_STEP;
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
-    sZ.moveTo(-targetPosZ);
-    if (sZ.distanceToGo() == 0) {
-      targetPosZ *= -1;
-    }
-  }
-  if (sZ.distanceToGo() == 0) {
     sZ.moveTo(0);
   }
 }
-
-
-// void moveStpr(int selStpr, int steps, int direction){
-//   targetPosX = direction * steps;
-//   targetPosZ = direction * steps;
-//   if(selStpr == 1){
-//     sX.move(targetPosX);
-//   }
-//   if(selStpr == 2){
-//     sZ.move(targetPosZ);
-//   }
-//   if(selStpr == 1){
-//     sX.run();
-//   }
-//   if(selStpr == 2){
-//     sZ.run();
-//   }
-// }
