@@ -189,6 +189,7 @@ class App(customtkinter.CTk):
   def open_graph(self):
     get_measurement_keithley_2401() 
     
+  ################################################################# 
   def connect_arduino(self):
     ports = serial.tools.list_ports.comports()
     serial_inst = serial.Serial()
@@ -198,7 +199,6 @@ class App(customtkinter.CTk):
     for port in ports:
         #ports_list.append(str(port))
         print(str(port))
-    
     
     # Commented OUT FOR DEMO          #
     #for x in range(0,len(ports_list)):
@@ -238,7 +238,7 @@ class App(customtkinter.CTk):
        
       #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
     
-
+##############################################################################
   def UNO_input_dialog(self): 
     val = customtkinter.CTkInputDialog(text="Arduino Command: (ON/OFF): ",
                                           title="Arduino Command")
@@ -343,7 +343,6 @@ def get_measurement_keithley_2401():
     keithley.write(":INIT")
     inputs = keithley.query_ascii_values("trace:data?")
   
-    app.progress_label.configure(text = "Plotting & Exporting")
     values = np.array(inputs)
     values = values.reshape(-1, 10)
     # setup main dataframe
@@ -358,6 +357,7 @@ def get_measurement_keithley_2401():
     df.index = row_array                        # index dataframe with finger #
     ### Calculate Contact Resistance ###
     # Setup Resistance & Distance Dataframe Columns
+    df['Voltage (V) @ -20mA'] = df['Voltage (V) @ -20mA'] * -1
     df['R+'] = df['Voltage (V) @ +20mA'] / df['Current+'] 
     df['R-'] = df['Voltage (V) @ -20mA'] / df['Current-'] 
     df['Rmittel (\u03A9)'] = (df['R+'] - df['R-'])/2
@@ -373,11 +373,11 @@ def get_measurement_keithley_2401():
     distance_np = np.array(distance_array,dtype=np.float64)
     rmittel_array = df2['Rmittel (\u03A9)']
     rmittel_np = np.array(rmittel_array,dtype=np.float64)
-    #xs = np.array(distance_np, dtype=np.float64)
-    #ys = np.array(rmittel_np, dtype=np.float64)
-    #print(xs,ys)     # ACI-RD0123G EXAMPLE DATA REPLACE # OF FINGERS WITH 11
-    xs = np.array([130.65, 252.225, 362.525, 475.575, 581.3, 665.975, 739.275, 791.175, 827.225, 861.075, 905.225], dtype=np.float64)
-    ys = np.array([0.89, 1.815, 2.74, 3.665, 4.59, 5.515, 6.44, 7.365, 8.29, 9.215, 10.14], dtype=np.float64)
+    xs = np.array(distance_np, dtype=np.float64)
+    ys = np.array(rmittel_np, dtype=np.float64)   
+    ### ACI-RD0123G EXAMPLE DATA REPLACE # OF FINGERS WITH 11 ###
+    #xs = np.array([130.65, 252.225, 362.525, 475.575, 581.3, 665.975, 739.275, 791.175, 827.225, 861.075, 905.225], dtype=np.float64)
+    #ys = np.array([0.89, 1.815, 2.74, 3.665, 4.59, 5.515, 6.44, 7.365, 8.29, 9.215, 10.14], dtype=np.float64)
     m1, b1 = find_intercept(xs,ys)   
     m2, y_int = find_intercept(ys,xs)
     x_int = abs(b1)/num_fingers
@@ -392,7 +392,6 @@ def get_measurement_keithley_2401():
         df.to_excel(writer, sheet_name='DataResults')
         dft2.to_excel(writer, sheet_name='CalculatedResults')
     #PLOT GRAPH
-    #df2.plot(x='Distance (mm)', y='Rmittel (\u03A9)', layout=(1,3), subplots=True, xlabel = "Distance (mm)", ylabel = "Resistance (\u03A9)",kind = 'line', title = "Contact Resistance Regression", grid = True)        
     coef = np.polyfit(ys,xs,1)
     poly1d_fn = np.poly1d(coef) 
     correlation = np.corrcoef(ys, xs)[0,1]
