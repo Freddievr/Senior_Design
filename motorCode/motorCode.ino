@@ -8,9 +8,9 @@
 #define AWAY_MOTOR -1
 #define TOWARD_MOTOR 1
 #define MAX_POSITION 150000  // maximum of position we can set (long type)
-#define MAX_SPD 3000
-#define NORM_SPD 2000
-#define ACCL_SPD 3000
+#define MAX_SPD 50000
+#define NORM_SPD 35000
+#define ACCL_SPD 35000
 #define STEP_PER_MM 320
 #define MM_PER_STEP 0.003125
 #define Z_MEASURE_STEP 4000
@@ -27,7 +27,7 @@ void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd);
 void moveXHome();
 void moveZTopHome();
 void moveZBotHome();
-void measureZ(int gapWidth);
+void measureZ(float gapWidth);
 void homeCalibration();
 
 long targetPosX = 0;
@@ -42,8 +42,8 @@ bool incremented = true;
 bool calComplete = false;
 unsigned long previousMillis = 0;
 const long interval = 3000;
-int time = 3000;
-long stepSize = 0;
+int time = 8000;
+float stepSize;
 
 
 void setup() {
@@ -72,7 +72,7 @@ void loop() {
   
   homeCalibration();
   if (calComplete == true) {
-    measureZ(4800);
+    measureZ(2000); //248.8 = 0.89mm?
   }
 }
 
@@ -148,16 +148,15 @@ void moveZBotHome() {
   }
 }
 
-void measureZ(int gapWidth) {
+void measureZ(float gapWidth) {
   sZ.moveTo(3000);
   sZ.runToPosition();
   delay(time);
+  stepSize += gapWidth;
   sZ.moveTo(0);
   sZ.runToPosition();
-  delay(time);
-  stepSize += gapWidth;
+  //delayMicroseconds(time);
   sX.moveTo(-stepSize);
   sX.runToPosition();
   // stepSize += gapWidth;
-  delay(time);
 }

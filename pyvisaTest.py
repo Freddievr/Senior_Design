@@ -24,25 +24,25 @@ def get_measurement_keithley_2401():
     # Setup VARIABLES 
     gap_width = 0.89            # in mm
     strip_width = 2             # in mm
-    num_fingers = 11                ## CHANGE ##                ###### NOT OVER 7??????
+    num_fingers = 10                ## CHANGE ##                ###### NOT OVER 7??????
     numReadings = str(num_fingers*2)
     rowName = "Finger"
-    keithley.timeout = 5000 * num_fingers               ## timeout set up according to # of fingers
+    keithley.timeout = 10000 * num_fingers               ## timeout set up according to # of fingers
         
     # Setup Meter
     keithley.write(":SOUR:FUNC:MODE CURR")             # Select current source 
     # setup current sweep mode & points
     keithley.write(":SOUR:CURR:MODE LIST")
     keithley.write(":SOUR:LIST:CURR -0.020,0.020")     # Sweep points -20mA,20mA
-    keithley.write(":SOUR:SWE:POIN " + numReadings)
+    keithley.write(":SOUR:SWE:POIN 2")
     keithley.write(":SOUR:SWE:DIR UP")
     # turn off concurrent functions
     keithley.write(":SENSE:FUNC:CONC OFF")
     keithley.write(":SENSE:CURR:PROT:RSYN ON")  
     # 0ms Trigger delay
-    keithley.write(":TRIG:DEL 0.0")
+    keithley.write(":TRIG:DEL 5")
     # 0ms Source delay
-    keithley.write(":SOUR:DEL 0.0")
+    keithley.write(":SOUR:DEL 0.0046")
     # set current complaince to 10x10^-3 (10mA)
     keithley.write(":SENSE:CURR:PROT 10e-3")
     keithley.write(":SYST:RSEN ON")                #4 point probe
@@ -53,12 +53,14 @@ def get_measurement_keithley_2401():
     
     # store n readings in buffer
     keithley.write(":TRAC:POINTS " + numReadings)
-    # set ARM count n=1
-    keithley.write(":ARM:COUN " + numReadings)
+    # set ARM count n= num_fingers
+    keithley.write(":ARM:COUN " + str(num_fingers))
+    # set ARM delay 
+    #keithley.write(":ARM:TIM 4")
     # enable buffer for trace?
     keithley.write(":TRAC:FEED:CONT NEXT")
     # of sweep points n
-    keithley.write("TRIG:COUN " + numReadings)
+    keithley.write("TRIG:COUN 2 ")
     
     # turn on output
     keithley.write(":OUTPUT ON")
@@ -80,6 +82,7 @@ def get_measurement_keithley_2401():
     df.index = row_array                        # index dataframe with finger #
     ### Calculate Contact Resistance ###
     # Setup Resistance & Distance Dataframe Columns
+    df['Voltage (V) @ -20mA'] = df['Voltage (V) @ -20mA'] * -1
     df['R+'] = df['Voltage (V) @ +20mA'] / df['Current+'] 
     df['R-'] = df['Voltage (V) @ -20mA'] / df['Current-'] 
     df['Rmittel (\u03A9)'] = (df['R+'] - df['R-'])/2
@@ -95,11 +98,11 @@ def get_measurement_keithley_2401():
     distance_np = np.array(distance_array,dtype=np.float64)
     rmittel_array = df2['Rmittel (\u03A9)']
     rmittel_np = np.array(rmittel_array,dtype=np.float64)
-    #xs = np.array(distance_np, dtype=np.float64)
-    #ys = np.array(rmittel_np, dtype=np.float64)
-    #print(xs,ys)     # ACI-RD0123G EXAMPLE DATA REPLACE # OF FINGERS WITH 11
-    xs = np.array([130.65, 252.225, 362.525, 475.575, 581.3, 665.975, 739.275, 791.175, 827.225, 861.075, 905.225], dtype=np.float64)
-    ys = np.array([0.89, 1.815, 2.74, 3.665, 4.59, 5.515, 6.44, 7.365, 8.29, 9.215, 10.14], dtype=np.float64)
+    xs = np.array(distance_np, dtype=np.float64)
+    ys = np.array(rmittel_np, dtype=np.float64)   
+    ### ACI-RD0123G EXAMPLE DATA REPLACE # OF FINGERS WITH 11 ###
+    #xs = np.array([130.65, 252.225, 362.525, 475.575, 581.3, 665.975, 739.275, 791.175, 827.225, 861.075, 905.225], dtype=np.float64)
+    #ys = np.array([0.89, 1.815, 2.74, 3.665, 4.59, 5.515, 6.44, 7.365, 8.29, 9.215, 10.14], dtype=np.float64)
     m1, b1 = find_intercept(xs,ys)   
     m2, y_int = find_intercept(ys,xs)
     x_int = abs(b1)/num_fingers
@@ -114,7 +117,6 @@ def get_measurement_keithley_2401():
         df.to_excel(writer, sheet_name='DataResults')
         dft2.to_excel(writer, sheet_name='CalculatedResults')
     #PLOT GRAPH
-    #df2.plot(x='Distance (mm)', y='Rmittel (\u03A9)', layout=(1,3), subplots=True, xlabel = "Distance (mm)", ylabel = "Resistance (\u03A9)",kind = 'line', title = "Contact Resistance Regression", grid = True)        
     coef = np.polyfit(ys,xs,1)
     poly1d_fn = np.poly1d(coef) 
     correlation = np.corrcoef(ys, xs)[0,1]
