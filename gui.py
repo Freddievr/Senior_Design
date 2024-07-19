@@ -114,7 +114,7 @@ class App(customtkinter.CTk):
           
     self.progress_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
                                              text=  "N/A",
-                                             font=customtkinter.CTkFont(size=12))
+                                             font=customtkinter.CTkFont(size=12, weight="bold"))
     self.progress_label.grid(row=1,
                             column=0,
                             padx=(10, 10),
@@ -147,7 +147,6 @@ class App(customtkinter.CTk):
     self.label_num_fingers = customtkinter.CTkLabel(self, text = "# of Fingers: ")
     self.label_num_fingers.grid(row=0, column=2, padx=2, pady=2, sticky="ew")
     
-    
 # FUNCTIONS Define
 
   def button_stop(self):    
@@ -175,7 +174,7 @@ class App(customtkinter.CTk):
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Resume" )
     self.stop_button.configure(state="enabled")
-    self.progress_label.configure(text = "Paused...")
+    self.progress_label.configure(text = "Paused")
     
   def open_program(self):
     file_path = filedialog.askopenfilename()
@@ -265,10 +264,8 @@ class App(customtkinter.CTk):
     customtkinter.set_widget_scaling(new_scaling_float)
     
   def var_send_button(self): # Send Values Button # NOT NEEDED (Placeholder)
-    global send_button
-    send_button = 1
+    self.progress_label.configure(text = "Measuring...")
     self.connect_arduino()
-    return send_button
 
 def open_input_parameters(selection):
         dialog = customtkinter.CTkInputDialog(text="Type in Value:",
@@ -346,6 +343,7 @@ def get_measurement_keithley_2401():
     keithley.write(":INIT")
     inputs = keithley.query_ascii_values("trace:data?")
   
+    app.progress_label.configure(text = "Plotting & Exporting")
     values = np.array(inputs)
     values = values.reshape(-1, 10)
     # setup main dataframe
