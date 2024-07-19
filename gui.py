@@ -101,7 +101,25 @@ class App(customtkinter.CTk):
                             padx=(20, 10),
                             pady=(10, 10),
                             sticky="w")
-
+      
+    self.progress_set_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
+                                             text="Progress: ",
+                                             font=customtkinter.CTkFont(
+                                              size=14, weight="bold"))
+    self.progress_set_label.grid(row=1,
+                            column=0,
+                            padx=(20, 10),
+                            pady=(10, 10),
+                            sticky="w")
+          
+    self.progress_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
+                                             text=  "N/A",
+                                             font=customtkinter.CTkFont(size=12))
+    self.progress_label.grid(row=1,
+                            column=0,
+                            padx=(10, 10),
+                            pady=(10, 10),
+                            sticky="e")
   # Start Button
     self.button_frame = customtkinter.CTkFrame(self)
     self.button_frame.grid(row=2,
@@ -114,7 +132,7 @@ class App(customtkinter.CTk):
       master=self.button_frame, command=self.button_start, fg_color="green", text="Start", width = 150, hover_color= "#228B22", text_color = "black")
     self.start_button.grid(row=1, column=2, pady=20, padx=20, sticky="n")
     self.resume_button = customtkinter.CTkButton(
-      master=self.button_frame, command=self.button_resume, fg_color="Orange", text="Pause", width = 150, text_color = "black")
+      master=self.button_frame, command=self.button_pause, fg_color="Orange", text="Pause", width = 150, text_color = "black")
     self.resume_button.grid(row=2, column=2, pady=20, padx=20, sticky="n")
     self.stop_button = customtkinter.CTkButton(
       master=self.button_frame, command=self.button_stop, fg_color="red", text="Stop", width = 150, text_color = "black")
@@ -139,6 +157,7 @@ class App(customtkinter.CTk):
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Start")
     self.stop_button.configure(state="disabled")
+    self.progress_label.configure(text = "Stopped")
 
   def button_start(self):
     print("Program Started")
@@ -148,13 +167,15 @@ class App(customtkinter.CTk):
     self.stop_button.configure(state="enabled")
     self.send_button = customtkinter.CTkButton(self.sidebar_frame, text= "Send Values", command=self.var_send_button)
     self.send_button.grid(row=5, column=0, padx=20, pady=10)
+    self.progress_label.configure(text = "Starting...")
 
-  def button_resume(self):
-    print("button clicked")
+  def button_pause(self):
+    print("PAUSED")
     self.progressbar_1.stop()
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Resume" )
     self.stop_button.configure(state="enabled")
+    self.progress_label.configure(text = "Paused...")
     
   def open_program(self):
     file_path = filedialog.askopenfilename()
