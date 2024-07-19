@@ -28,5 +28,3 @@ while True:
         exit()
 
 
-
-
