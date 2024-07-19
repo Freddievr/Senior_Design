@@ -140,7 +140,7 @@ void moveZBotHome() {
     homeZBotPos = true;
     measuringZInProg = true;
     calComplete = true;
-    targetPosX = 300;
+    targetPosX = 576;
   }
   if (homeZBotPos == false && measuringZInProg == false) {
     sZ.run();
@@ -156,6 +156,6 @@ void measureZ() {
   delay(time);
   sX.moveTo(-targetPosX);
   sX.runToPosition();
-  targetPosX += 300;
+  targetPosX += 576;
   delay(time);
 }
