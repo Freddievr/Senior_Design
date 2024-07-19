@@ -107,7 +107,7 @@ void homeCalibration() {
   if (homeZTopPos == true && measuringZInProg == false) {
     sZ.move(1600);
   }
-  if (measuringZInProg == false) {
+  if (measuringZInProg == false && homeXPos == true) {
     moveZBotHome();
   }
 }
@@ -141,7 +141,7 @@ void moveZBotHome() {
     homeZBotPos = true;
     measuringZInProg = true;
     calComplete = true;
-    targetPosX = 576;
+    // targetPosX = 576;
   }
   if (homeZBotPos == false && measuringZInProg == false) {
     sZ.run();
