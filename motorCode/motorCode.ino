@@ -27,7 +27,7 @@ void setMotorSpd(int selMotor, int maxSpd, int normSpd, int acclSpd);
 void moveXHome();
 void moveZTopHome();
 void moveZBotHome();
-void measureZ();
+void measureZ(int gapWidth);
 void homeCalibration();
 
 long targetPosX = 0;
@@ -43,6 +43,7 @@ bool calComplete = false;
 unsigned long previousMillis = 0;
 const long interval = 3000;
 int time = 3000;
+long stepSize = 0;
 
 
 void setup() {
@@ -71,7 +72,7 @@ void loop() {
   
   homeCalibration();
   if (calComplete == true) {
-    measureZ();
+    measureZ(4800);
   }
 }
 
@@ -147,15 +148,16 @@ void moveZBotHome() {
   }
 }
 
-void measureZ() {
-  sZ.moveTo(time);
+void measureZ(int gapWidth) {
+  sZ.moveTo(3000);
   sZ.runToPosition();
   delay(time);
   sZ.moveTo(0);
   sZ.runToPosition();
   delay(time);
-  sX.moveTo(-targetPosX);
+  stepSize += gapWidth;
+  sX.moveTo(-stepSize);
   sX.runToPosition();
-  targetPosX += 576;
+  // stepSize += gapWidth;
   delay(time);
 }
