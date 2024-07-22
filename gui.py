@@ -192,9 +192,9 @@ class App(customtkinter.CTk):
   ################################################################# 
   def connect_arduino(self):
     ports = serial.tools.list_ports.comports()
-    serial_inst = serial.Serial()
+    serial_inst = serial.Serial(timeout = 0.1)
     ports_list = []
-    port_val = 'COM3'
+    port_val = 'COM4'
 
     for port in ports:
         #ports_list.append(str(port))
@@ -215,11 +215,12 @@ class App(customtkinter.CTk):
     # self.send_button = customtkinter.CTkButton(self.sidebar_frame, text= "Send Values", command=self.var_send_button)
     # self.send_button.grid(row=5, column=0, padx=20, pady=10)
         
+
     ## SEND VARIABLES 
     #global gap_width
     global num_fingers
       
-    variables = "<" + num_fingers + ">"
+    # variables = "<" + num_fingers + ">"
     # variables = "<" + gap_width + "," + num_fingers + ">"
     #gapWidth = "g" + gap_width + '\n' + ">"
     #numFingers= "n" + num_fingers + '\n' + ">"
@@ -230,11 +231,18 @@ class App(customtkinter.CTk):
     #num_fingers = num_fingers + '\r'
     #serial_inst.write(gap_width.encode('utf-8'))
     #serial_inst.write(num_fingers.encode('utf-8'))
-
+    print('Fingers Sent: ' + num_fingers)
+    msgWR = num_fingers
+    time.sleep(2)
+    serial_inst.write(bytes(msgWR,'utf-8'))
+    msgRD = serial_inst.readline()
+    msgRD = msgRD.decode('utf-8')
+    print(f'From Arduino: {msgRD}\n')
+    
     #for i in range(60):
-    serial_inst.write(variables.encode('ascii'))   #'utf-8'
-    serial_inst.flush
-    print("SENT:", variables)
+    #serial_inst.write(variables.encode('utf-8'))   #'utf-8'
+    #serial_inst.flush
+    #print("SENT:", variables)
        
       #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
     
@@ -301,13 +309,14 @@ def get_measurement_keithley_2401():
     # Setup VARIABLES 
     gap_width = 0.89            # in mm
     strip_width = 2             # in mm
-    num_fingers = 10                ## CHANGE ##                ###### NOT OVER 7??????
+    num_fingers = 10                                    ## CHANGE ##               
     numReadings = str(num_fingers*2)
     rowName = "Finger"
-    keithley.timeout = 10000 * num_fingers               ## timeout set up according to # of fingers
+    keithley.timeout = 10000 * num_fingers             # timeout set up according to # of fingers
         
     # Setup Meter
     keithley.write(":SOUR:FUNC:MODE CURR")             # Select current source 
+    keithley.write("ROUTE:TERMINALS REAR")             # Select Rear Terminals 
     # setup current sweep mode & points
     keithley.write(":SOUR:CURR:MODE LIST")
     keithley.write(":SOUR:LIST:CURR -0.020,0.020")     # Sweep points -20mA,20mA
@@ -378,10 +387,10 @@ def get_measurement_keithley_2401():
     xs = np.array(distance_np, dtype=np.float64)
     ys = np.array(rmittel_np, dtype=np.float64)   
     ### ACI-RD0123G EXAMPLE DATA REPLACE # OF FINGERS WITH 11 ###
-    #xs = np.array([130.65, 252.225, 362.525, 475.575, 581.3, 665.975, 739.275, 791.175, 827.225, 861.075, 905.225], dtype=np.float64)
-    #ys = np.array([0.89, 1.815, 2.74, 3.665, 4.59, 5.515, 6.44, 7.365, 8.29, 9.215, 10.14], dtype=np.float64)
-    m1, b1 = find_intercept(xs,ys)   
-    m2, y_int = find_intercept(ys,xs)
+    #xs = np.array([0.89, 1.815, 2.74, 3.665, 4.59, 5.515, 6.44, 7.365, 8.29, 9.215, 10.14], dtype=np.float64)
+    #ys = np.array([130.65, 252.225, 362.525, 475.575, 581.3, 665.975, 739.275, 791.175, 827.225, 861.075, 905.225], dtype=np.float64)
+    m1, b1 = find_intercept(ys,xs)   
+    m2, y_int = find_intercept(xs,ys)
     x_int = abs(b1)/num_fingers
     contact_resistance = (x_int/strip_width)*(y_int/strip_width)*(strip_width/num_fingers) # oh m-cm^2
     sheet_resistance = strip_width * m2
@@ -394,15 +403,17 @@ def get_measurement_keithley_2401():
         df.to_excel(writer, sheet_name='DataResults')
         dft2.to_excel(writer, sheet_name='CalculatedResults')
     #PLOT GRAPH
-    coef = np.polyfit(ys,xs,1)
+    coef = np.polyfit(xs,ys,1)
     poly1d_fn = np.poly1d(coef) 
-    correlation = np.corrcoef(ys, xs)[0,1]
+    correlation = np.corrcoef(xs, ys)[0,1]
     r2 = correlation**2 
     annotate_str = "y = " + str("%.4f" % round(m2, 4)) + "x + " + str("%.4f" % round(y_int, 4)) + "\n" + "R\u00b2 = " + str("%.4f" % round(r2, 4))
     ax3 = plt.subplot(121)  
-    ax3.plot(ys,xs, 'bo', ys, poly1d_fn(ys), '--g',)     #'--k'=black dashed line, 'bo' = blue circle marker
+    ax3.plot(xs,ys, 'bo', xs, poly1d_fn(xs), '--g',)     #'--k'=black dashed line, 'bo' = blue circle marker
     ax3.set_xlabel('Distance (mm)',fontsize= 14)
+    ax3.set_xlim(left = 0, right=(num_fingers*1))
     ax3.set_ylabel('Rmittel (\u03A9)',fontsize= 14)
+    ax3.set_ylim(bottom = 0)
     ax3.set_title("Contact Resistance Regression",fontsize= 20, fontweight = 'bold')
     ax3.grid(True)
     ax3.axis(True)
