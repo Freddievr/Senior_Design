@@ -21,7 +21,7 @@ class App(customtkinter.CTk):
 
     # configure window
     self.title("PVRL - Contact Resistance Measurements")
-    self.geometry(f"{800}x{650}")
+    self.geometry(f"{700}x{600}")
     self.iconbitmap("C:/Users/PVRL-01/Documents/S24PROBE/CODE/PVRL-Logo.ico")
     # configure grid layout (4x4)
     self.grid_columnconfigure((0,1,2), weight=1)
@@ -216,10 +216,11 @@ class App(customtkinter.CTk):
     msgWR = variables
     time.sleep(2)
     serial_inst.write(bytes(msgWR,'utf-8'))
+
     msgRD = serial_inst.readline()
     msgRD = msgRD.decode('utf-8')
     print(f'From Arduino: {msgRD}\n')
-    if (msgRD == 'K'):
+    if (msgRD == "K"):
         print("Measuring")
 ##############################################################################
   def UNO_input_dialog(self): 
