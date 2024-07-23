@@ -189,7 +189,7 @@ class App(customtkinter.CTk):
   def open_graph(self):
     get_measurement_keithley_2401() 
     
-  ################################################################# 
+   ################################################################# 
   def connect_arduino(self):
     ports = serial.tools.list_ports.comports()
     serial_inst = serial.Serial(timeout = 0.1)
@@ -217,11 +217,13 @@ class App(customtkinter.CTk):
         
 
     ## SEND VARIABLES 
-    #global gap_width
+    global gap_width
     global num_fingers
+    gap_width = "0.12"    
+    num_fingers = "12"
       
     # variables = "<" + num_fingers + ">"
-    # variables = "<" + gap_width + "," + num_fingers + ">"
+    variables = "<" + "Oo," + num_fingers + "," + gap_width + ">"
     #gapWidth = "g" + gap_width + '\n' + ">"
     #numFingers= "n" + num_fingers + '\n' + ">"
     #input("Press Enter to continue...")
@@ -231,20 +233,13 @@ class App(customtkinter.CTk):
     #num_fingers = num_fingers + '\r'
     #serial_inst.write(gap_width.encode('utf-8'))
     #serial_inst.write(num_fingers.encode('utf-8'))
-    print('Fingers Sent: ' + num_fingers)
-    msgWR = num_fingers
+    print('Data Sent: ' + variables)
+    msgWR = variables
     time.sleep(2)
     serial_inst.write(bytes(msgWR,'utf-8'))
     msgRD = serial_inst.readline()
     msgRD = msgRD.decode('utf-8')
     print(f'From Arduino: {msgRD}\n')
-    
-    #for i in range(60):
-    #serial_inst.write(variables.encode('utf-8'))   #'utf-8'
-    #serial_inst.flush
-    #print("SENT:", variables)
-       
-      #return tf       #RUNS IN INFINITE LOOP CANNOT RUN IF THIS IS UNCOMMENTED (NEEDS FIX ASAP) 
     
 ##############################################################################
   def UNO_input_dialog(self): 
@@ -311,8 +306,7 @@ def get_measurement_keithley_2401():
     strip_width = 2             # in mm
     num_fingers = 10                                    ## CHANGE ##               
     numReadings = str(num_fingers*2)
-    rowName = "Finger"
-    keithley.timeout = 10000 * num_fingers             # timeout set up according to # of fingers
+    keithley.timeout = 11000 * num_fingers             # timeout set up according to # of fingers
         
     # Setup Meter
     keithley.write(":SOUR:FUNC:MODE CURR")             # Select current source 
