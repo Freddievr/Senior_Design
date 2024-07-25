@@ -47,7 +47,7 @@ class App(customtkinter.CTk):
     self.Open_program_button.grid(row=1, column = 0, padx=10, pady=10)
    
     self.Open_arduino_program_button = customtkinter.CTkButton(
-      self.sidebar_frame, text="Open Arduino Program", command = self.open_arduino_program)
+      self.sidebar_frame, text="Open Arduino IDE", command = self.open_arduino_program)
     self.Open_arduino_program_button.grid(row=2, column=0, padx=10, pady=10)
 
     # configure tab view and locate in grid
@@ -82,14 +82,6 @@ class App(customtkinter.CTk):
                                        sticky="nse")
     self.slider_progressbar_frame.grid_columnconfigure(0, weight=1)
     self.slider_progressbar_frame.grid_rowconfigure(4, weight=1)
-    self.progressbar_1 = customtkinter.CTkProgressBar(
-        self.slider_progressbar_frame, progress_color= "green", width = 250)
-    self.progressbar_1.grid(row=2,
-                            column=0,
-                            padx=(20, 10),
-                            pady=(10, 10),
-                            sticky="w")
-      
     self.progress_set_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
                                              text="Progress: ",
                                              font=customtkinter.CTkFont(
@@ -104,15 +96,15 @@ class App(customtkinter.CTk):
                                              text=  "Waiting For Parameters",
                                              font=customtkinter.CTkFont(size=12, weight="bold"))
     self.progress_label.grid(row=1,
-                            column=0,
-                            padx=(10, 10),
+                            column=2,
+                            padx=(20, 10),
                             pady=(10, 10),
                             sticky="e")
   # Start Button
     self.button_frame = customtkinter.CTkFrame(self)
     self.button_frame.grid(row=2,
                               column=2,
-                              padx=(20, 20),
+                              padx=(20, 10),
                               pady=(10, 10),
                               sticky="n")
 
@@ -128,18 +120,13 @@ class App(customtkinter.CTk):
   # set default values
     self.stop_button.configure(state="disabled")
     self.resume_button.configure(state="disabled")
-    self.progressbar_1.configure(mode="determinate",determinate_speed= 0.1)
-    
     self.label_gap_width = customtkinter.CTkLabel(self, text = "Gap Width: ")  
     self.label_gap_width.grid(row=0, column=2, padx=2, pady=80, sticky="n")
     self.label_num_fingers = customtkinter.CTkLabel(self, text = "# of Fingers: ")
     self.label_num_fingers.grid(row=0, column=2, padx=2, pady=2, sticky="ew")
-    self.progressbar_1.set(0.0)
     
 # FUNCTIONS Define
   def button_stop(self):    
-    self.progressbar_1.stop()
-    self.progressbar_1.set(0.0)
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Start")
     self.stop_button.configure(state="disabled")
@@ -147,20 +134,16 @@ class App(customtkinter.CTk):
 
   def button_start(self):
     self.progress_label.configure(text = "Measuring...")
-    self.progressbar_1.start()
     self.resume_button.configure(state="enabled")
     self.start_button.configure(state="disabled",text_color_disabled = "green", text = "Start")
     self.stop_button.configure(state="enabled")
     self.connect_arduino()
-    self.progressbar_1.stop()
-    self.progressbar_1.set(0.0)
-    self.resume_button.configure(state="disabled")
-    self.start_button.configure(state="enabled", text = "Start")
-    self.stop_button.configure(state="disabled")
-    self.progress_label.configure(text = "Waiting For Parameters")
+    # self.resume_button.configure(state="disabled")
+    # self.start_button.configure(state="enabled", text = "Start")
+    # self.stop_button.configure(state="disabled")
+    # self.progress_label.configure(text = "Waiting For Parameters")
 
   def button_pause(self):
-    self.progressbar_1.stop()
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Resume" )
     self.stop_button.configure(state="enabled")
