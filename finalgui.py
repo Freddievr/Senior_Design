@@ -38,8 +38,6 @@ class App(customtkinter.CTk):
                                              font=customtkinter.CTkFont(
                                               size=18, weight="bold"))
     self.logo_label.grid(row=0, column=0, padx=10, pady=(10, 10))
-   # self.gap_avg = customtkinter.CTkLabel(master=self, height=20, width=20, text= "gap_average")
-   # self.gap_avg.grid(row=2, column=1, padx=2, pady=(20, 10))
 
   # Open Program
     self.Open_program_button = customtkinter.CTkButton(
@@ -47,7 +45,7 @@ class App(customtkinter.CTk):
     self.Open_program_button.grid(row=1, column = 0, padx=10, pady=10)
    
     self.Open_arduino_program_button = customtkinter.CTkButton(
-      self.sidebar_frame, text="Open Arduino Program", command = self.open_arduino_program)
+      self.sidebar_frame, text="Open Arduino IDE", command = self.open_arduino_program)
     self.Open_arduino_program_button.grid(row=2, column=0, padx=10, pady=10)
 
     # configure tab view and locate in grid
@@ -72,47 +70,39 @@ class App(customtkinter.CTk):
         variable=self.optionmenu_1_var)
     self.optionmenu_1.grid(row=0, column=0, padx=10, pady=(10, 10))
         
-    # create progressbar frame
-    self.slider_progressbar_frame = customtkinter.CTkFrame(
-        self, fg_color="transparent")
-    self.slider_progressbar_frame.grid(row=6,
-                                       column=1,
-                                       padx=(20, 0),
-                                       pady=(20, 0),
-                                       sticky="nse")
-    self.slider_progressbar_frame.grid_columnconfigure(0, weight=1)
-    self.slider_progressbar_frame.grid_rowconfigure(4, weight=1)
-    self.progressbar_1 = customtkinter.CTkProgressBar(
-        self.slider_progressbar_frame, progress_color= "green", width = 250)
-    self.progressbar_1.grid(row=2,
-                            column=0,
-                            padx=(20, 10),
-                            pady=(10, 10),
-                            sticky="w")
-      
-    self.progress_set_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
-                                             text="Progress: ",
-                                             font=customtkinter.CTkFont(
-                                              size=14, weight="bold"))
-    self.progress_set_label.grid(row=1,
-                            column=0,
-                            padx=(20, 10),
-                            pady=(10, 10),
-                            sticky="w")
+    # # create progressbar frame
+    # self.slider_progressbar_frame = customtkinter.CTkFrame(
+    #     self, fg_color="transparent")
+    # self.slider_progressbar_frame.grid(row=6,
+    #                                    column=1,
+    #                                    padx=(20, 0),
+    #                                    pady=(20, 0),
+    #                                    sticky="nse")
+    # self.slider_progressbar_frame.grid_columnconfigure(0, weight=1)
+    # self.slider_progressbar_frame.grid_rowconfigure(4, weight=1)
+    # self.progress_set_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
+    #                                          text="Progress: ",
+    #                                          font=customtkinter.CTkFont(
+    #                                           size=14, weight="bold"))
+    # self.progress_set_label.grid(row=1,
+    #                         column=0,
+    #                         padx=(20, 10),
+    #                         pady=(10, 10),
+    #                         sticky="w")
           
-    self.progress_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
-                                             text=  "Waiting For Parameters",
-                                             font=customtkinter.CTkFont(size=12, weight="bold"))
-    self.progress_label.grid(row=1,
-                            column=0,
-                            padx=(10, 10),
-                            pady=(10, 10),
-                            sticky="e")
+    # self.progress_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
+    #                                          text=  "Waiting For Parameters",
+    #                                          font=customtkinter.CTkFont(size=12, weight="bold"))
+    # self.progress_label.grid(row=1,
+    #                         column=2,
+    #                         padx=(20, 10),
+    #                         pady=(10, 10),
+    #                         sticky="e")
   # Start Button
     self.button_frame = customtkinter.CTkFrame(self)
     self.button_frame.grid(row=2,
                               column=2,
-                              padx=(20, 20),
+                              padx=(20, 10),
                               pady=(10, 10),
                               sticky="n")
 
@@ -128,43 +118,34 @@ class App(customtkinter.CTk):
   # set default values
     self.stop_button.configure(state="disabled")
     self.resume_button.configure(state="disabled")
-    self.progressbar_1.configure(mode="determinate",determinate_speed= 0.1)
-    
     self.label_gap_width = customtkinter.CTkLabel(self, text = "Gap Width: ")  
     self.label_gap_width.grid(row=0, column=2, padx=2, pady=80, sticky="n")
     self.label_num_fingers = customtkinter.CTkLabel(self, text = "# of Fingers: ")
     self.label_num_fingers.grid(row=0, column=2, padx=2, pady=2, sticky="ew")
-    self.progressbar_1.set(0.0)
     
 # FUNCTIONS Define
   def button_stop(self):    
-    self.progressbar_1.stop()
-    self.progressbar_1.set(0.0)
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Start")
     self.stop_button.configure(state="disabled")
-    self.progress_label.configure(text = "Stopped")
+    # self.progress_label.configure(text = "Stopped")
 
   def button_start(self):
-    self.progress_label.configure(text = "Measuring...")
-    self.progressbar_1.start()
+    # self.progress_label.configure(text = "Measuring...")
     self.resume_button.configure(state="enabled")
     self.start_button.configure(state="disabled",text_color_disabled = "green", text = "Start")
     self.stop_button.configure(state="enabled")
     self.connect_arduino()
-    self.progressbar_1.stop()
-    self.progressbar_1.set(0.0)
-    self.resume_button.configure(state="disabled")
-    self.start_button.configure(state="enabled", text = "Start")
-    self.stop_button.configure(state="disabled")
-    self.progress_label.configure(text = "Waiting For Parameters")
+    # self.resume_button.configure(state="disabled")
+    # self.start_button.configure(state="enabled", text = "Start")
+    # self.stop_button.configure(state="disabled")
+    # self.progress_label.configure(text = "Waiting For Parameters")
 
   def button_pause(self):
-    self.progressbar_1.stop()
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Resume" )
     self.stop_button.configure(state="enabled")
-    self.progress_label.configure(text = "Paused")
+    # self.progress_label.configure(text = "Paused")
     
   def open_program(self):
     file_path = filedialog.askopenfilename()
@@ -199,20 +180,7 @@ class App(customtkinter.CTk):
             break
     get_measurement_keithley_2401()
 ##############################################################################
-
-  def UNO_input_dialog(self): 
-    val = customtkinter.CTkInputDialog(text="Arduino Command: (ON/OFF): ",
-                                          title="Arduino Command")
-    self.serial_inst.write(val.encode('utf-8'))
-        
 # given
-  def change_appearance_mode_event(self, new_appearance_mode: str):   #Remove near end
-    customtkinter.set_appearance_mode(new_appearance_mode)
-
-  def change_scaling_event(self, new_scaling: str):
-    new_scaling_float = int(new_scaling.replace("%", "")) / 100
-    customtkinter.set_widget_scaling(new_scaling_float)
-
 def open_input_parameters(selection):
         dialog = customtkinter.CTkInputDialog(text="Type in Value:",
                                           title=selection)
@@ -324,7 +292,7 @@ def get_measurement_keithley_2401():
     m1, b1 = find_intercept(ys,xs)   
     m2, y_int = find_intercept(xs,ys)
     x_int = abs(b1)/num_fingers_int
-    contact_resistance = (x_int/strip_width)*(y_int/strip_width)*(strip_width/num_fingers_int) # oh m-cm^2
+    contact_resistance = (x_int/strip_width)*(y_int/strip_width)*(strip_width/num_fingers_int) # ohm-cm^2
     sheet_resistance = strip_width * m2
     dft = dft.round(3)
     sci_contact_resistance = "{:.3e}".format(contact_resistance)
@@ -341,7 +309,7 @@ def get_measurement_keithley_2401():
     r2 = correlation**2 
     annotate_str = "y = " + str("%.4f" % round(m2, 4)) + "x + " + str("%.4f" % round(y_int, 4)) + "\n" + "R\u00b2 = " + str("%.4f" % round(r2, 4))
     ax3 = plt.subplot(121)  
-    ax3.plot(xs,ys, 'bo', xs, poly1d_fn(xs), '--g',)     #'--k'=black dashed line, 'bo' = blue circle marker
+    ax3.plot(xs,ys, 'bo', xs, poly1d_fn(xs), '--g',)     #'--g'=green dashed line, 'bo' = blue circle marker
     ax3.set_xlabel('Distance (mm)',fontsize= 14)
     ax3.set_xlim(left = 0, right=(float(gap_width)*(num_fingers_int+1)))
     ax3.set_ylabel('Rmittel (\u03A9)',fontsize= 14)
