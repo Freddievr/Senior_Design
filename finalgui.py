@@ -14,11 +14,12 @@ import numpy as np
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("uncc.json") 
+serial_inst = serial.Serial(baudrate= 9600, port= 'COM3', timeout = 1)
+time.sleep(2)
 
 class App(customtkinter.CTk):
   def __init__(self):
     super().__init__()
-
     # configure window
     self.title("PVRL - Contact Resistance Measurements")
     self.geometry(f"{700}x{600}")
@@ -48,6 +49,8 @@ class App(customtkinter.CTk):
       self.sidebar_frame, text="Open Arduino IDE", command = self.open_arduino_program)
     self.Open_arduino_program_button.grid(row=2, column=0, padx=10, pady=10)
 
+    self.home_button = customtkinter.CTkButton(self.sidebar_frame, text= "Calibrate Home", command=self.home_button_function)
+    self.home_button.grid(row=4, column=0, padx=20, pady=10)
     # configure tab view and locate in grid
     self.tabview = customtkinter.CTkTabview(self, width=150,segmented_button_selected_hover_color="#A49665", border_color= "#A49665")
     self.tabview.grid(row=0,
@@ -70,34 +73,34 @@ class App(customtkinter.CTk):
         variable=self.optionmenu_1_var)
     self.optionmenu_1.grid(row=0, column=0, padx=10, pady=(10, 10))
         
-    # # create progressbar frame
-    # self.slider_progressbar_frame = customtkinter.CTkFrame(
-    #     self, fg_color="transparent")
-    # self.slider_progressbar_frame.grid(row=6,
-    #                                    column=1,
-    #                                    padx=(20, 0),
-    #                                    pady=(20, 0),
-    #                                    sticky="nse")
-    # self.slider_progressbar_frame.grid_columnconfigure(0, weight=1)
-    # self.slider_progressbar_frame.grid_rowconfigure(4, weight=1)
-    # self.progress_set_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
-    #                                          text="Progress: ",
-    #                                          font=customtkinter.CTkFont(
-    #                                           size=14, weight="bold"))
-    # self.progress_set_label.grid(row=1,
-    #                         column=0,
-    #                         padx=(20, 10),
-    #                         pady=(10, 10),
-    #                         sticky="w")
+    # create progressbar frame
+    self.slider_progressbar_frame = customtkinter.CTkFrame(
+        self, fg_color="transparent")
+    self.slider_progressbar_frame.grid(row=6,
+                                       column=1,
+                                       padx=(20, 0),
+                                       pady=(20, 0),
+                                       sticky="nse")
+    self.slider_progressbar_frame.grid_columnconfigure(0, weight=1)
+    self.slider_progressbar_frame.grid_rowconfigure(4, weight=1)
+    self.progress_set_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
+                                             text="Progress: ",
+                                             font=customtkinter.CTkFont(
+                                              size=14, weight="bold"))
+    self.progress_set_label.grid(row=1,
+                            column=0,
+                            padx=(20, 10),
+                            pady=(10, 10),
+                            sticky="w")
           
-    # self.progress_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
-    #                                          text=  "Waiting For Parameters",
-    #                                          font=customtkinter.CTkFont(size=12, weight="bold"))
-    # self.progress_label.grid(row=1,
-    #                         column=2,
-    #                         padx=(20, 10),
-    #                         pady=(10, 10),
-    #                         sticky="e")
+    self.progress_label = customtkinter.CTkLabel(self.slider_progressbar_frame,
+                                             text=  "Waiting For Calibration",
+                                             font=customtkinter.CTkFont(size=12, weight="bold"))
+    self.progress_label.grid(row=1,
+                            column=2,
+                            padx=(20, 10),
+                            pady=(10, 10),
+                            sticky="e")
   # Start Button
     self.button_frame = customtkinter.CTkFrame(self)
     self.button_frame.grid(row=2,
@@ -128,24 +131,31 @@ class App(customtkinter.CTk):
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Start")
     self.stop_button.configure(state="disabled")
-    # self.progress_label.configure(text = "Stopped")
+    self.progress_label.configure(text = "Stopped")
 
   def button_start(self):
-    # self.progress_label.configure(text = "Measuring...")
+    self.progress_label.configure(text = "Measuring...")
     self.resume_button.configure(state="enabled")
     self.start_button.configure(state="disabled",text_color_disabled = "green", text = "Start")
     self.stop_button.configure(state="enabled")
     self.connect_arduino()
-    # self.resume_button.configure(state="disabled")
-    # self.start_button.configure(state="enabled", text = "Start")
-    # self.stop_button.configure(state="disabled")
-    # self.progress_label.configure(text = "Waiting For Parameters")
-
+    # self.finished_button_reset()
   def button_pause(self):
     self.resume_button.configure(state="disabled")
     self.start_button.configure(state="enabled", text = "Resume" )
     self.stop_button.configure(state="enabled")
-    # self.progress_label.configure(text = "Paused")
+    self.progress_label.configure(text = "Paused")
+  
+  def home_button_function(self): # Send To Home Location
+    serial_inst.write(bytes('<h>','utf-8'))
+    self.progress_label.configure(text = "Calibrating")
+    
+  def finished_button_reset(self):
+    self.resume_button.configure(state="disabled")
+    self.start_button.configure(state="enabled", text = "Start")
+    self.stop_button.configure(state="disabled")
+    self.progress_label.configure(text = "Waiting For Calibration")
+    self.home_button.configure(state="enabled")
     
   def open_program(self):
     file_path = filedialog.askopenfilename()
@@ -157,33 +167,27 @@ class App(customtkinter.CTk):
         
    ################################################################# 
   def connect_arduino(self):
-    serial_inst = serial.Serial(timeout = 1)
-    port_val = 'COM3'
-    serial_inst.baudrate = 9600
-    serial_inst.port = port_val
-    serial_inst.open()
-
-    ## SEND VARIABLES 
+    # SEND VARIABLES 
     global gap_width
     global num_fingers
     flags = "V"
     gap_steps = str(int(float(gap_width)*1284))
     msgWR = "<" + flags +"," + gap_steps + "," + num_fingers + ">"
-    time.sleep(2)
     serial_inst.write(bytes(msgWR,'utf-8'))
+    serial_inst.write(bytes('<s>','utf-8'))
     msgRD = serial_inst.read()
-    while(msgRD != 'K'):
-        time.sleep(0.05) #determines if flags the reading
+    dec = int.from_bytes(msgRD, "big")
+    while(dec != 107):
         msgRD = serial_inst.read()
-        msgRD = msgRD.decode('utf-8')
-        if (msgRD == 'K'):
+        dec = int.from_bytes(msgRD, "big")
+        if (dec == 107):
             break
     get_measurement_keithley_2401()
 ##############################################################################
 # given
 def open_input_parameters(selection):
         dialog = customtkinter.CTkInputDialog(text="Type in Value:",
-                                          title=selection)
+                                          title=selection, fg_color= "#005035")
         var_name = selection
         var_data = dialog.get_input()
         
